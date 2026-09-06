@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -171,7 +172,12 @@ public class AuthService {
                 .orElse(null);
     }
 
-    private static UserDto toDto(User u) {
-        return new UserDto(u.getId(), u.getEmail(), u.getDisplayName(), "USER");
+    public static UserDto toDto(User u) {
+        boolean guest = u.getAccountType() == AccountType.GUEST;
+        Instant renameAvailableAt = guest && u.getDisplayNameChangedAt() != null
+                ? u.getDisplayNameChangedAt().plus(GuestIdentityService.renameCooldown())
+                : null;
+        return new UserDto(u.getId(), guest ? null : u.getEmail(), u.getDisplayName(), "USER",
+                u.getAccountType().name(), renameAvailableAt);
     }
 }

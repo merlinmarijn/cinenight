@@ -93,6 +93,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                 <Link to="/forgot-password" className="font-medium text-indigo-400 hover:text-indigo-300">{t('auth.pages.login.forgot_password')}</Link>
                 <Link to="/register" className="font-medium text-indigo-400 hover:text-indigo-300">{t('auth.pages.login.create_account')}</Link>
             </div>
+            <div className="border-t border-white/10 pt-5 text-center">
+                <Link to="/guest" className="font-medium text-amber-300 hover:text-amber-200">
+                    {t('auth.pages.guest.login_link')}
+                </Link>
+            </div>
         </div>
     );
 }

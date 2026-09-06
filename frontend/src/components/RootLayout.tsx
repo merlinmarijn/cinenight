@@ -75,7 +75,9 @@ export default function RootLayout({ user, onLogout }: RootLayoutProps) {
                                     title={t('nav.profileSettings')}
                                 >
                                     <div className="text-sm font-medium text-white leading-none">{user.displayName}</div>
-                                    <div className="text-xs text-gray-500 mt-1">{user.email}</div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        {user.accountType === 'GUEST' ? t('auth.guest_badge') : user.email}
+                                    </div>
                                 </Link>
 
                                 <button
@@ -88,6 +90,12 @@ export default function RootLayout({ user, onLogout }: RootLayoutProps) {
                             </div>
                         ) : (
                             <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+                                <Link
+                                    to="/guest"
+                                    className="hidden text-sm font-medium text-amber-300 hover:text-amber-200 transition-colors px-2 py-2 sm:block"
+                                >
+                                    {t('auth.guest')}
+                                </Link>
                                 <Link
                                     to="/login"
                                     className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-3 py-2"

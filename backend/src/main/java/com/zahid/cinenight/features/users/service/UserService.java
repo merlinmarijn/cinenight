@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -48,6 +49,11 @@ public class UserService {
     public UserDto updateProfile(Long userId, UpdateProfileReq req) {
         User user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException(getMsg("user.not.found"))); 
 
+        if (user.getAccountType() == AccountType.GUEST) {
+            updateGuestName(user, req.displayName());
+            return AuthService.toDto(users.save(user));
+        }
+
         if (req.displayName() != null && !req.displayName().isBlank()) {
             user.setDisplayName(req.displayName());
         }
@@ -74,7 +80,27 @@ public class UserService {
             users.save(user);
         }
 
-        return new UserDto(user.getId(), user.getEmail(), user.getDisplayName(), "USER");
+        return AuthService.toDto(user);
+    }
+
+    private void updateGuestName(User user, String requestedName) {
+        String username = requestedName == null ? "" : requestedName.trim();
+        if (username.equals(user.getUsername())) return;
+        if (username.length() < 3 || username.length() > 24 || !username.matches("[A-Za-z0-9_]+")) {
+            throw new IllegalArgumentException(getMsg("guest.username.invalid"));
+        }
+        Instant availableAt = user.getDisplayNameChangedAt() == null ? Instant.EPOCH
+                : user.getDisplayNameChangedAt().plus(GuestIdentityService.renameCooldown());
+        if (availableAt.isAfter(Instant.now())) {
+            throw new IllegalArgumentException(messageSource.getMessage(
+                    "guest.rename.cooldown", new Object[]{availableAt}, LocaleContextHolder.getLocale()));
+        }
+        if (users.existsByUsernameIgnoreCase(username)) {
+            throw new IllegalArgumentException(getMsg("guest.username.taken"));
+        }
+        user.setUsername(username);
+        user.setDisplayName(username);
+        user.setDisplayNameChangedAt(Instant.now());
     }
 
     @Transactional
@@ -103,6 +129,9 @@ public class UserService {
     @Transactional
     public void changePassword(Long userId, ChangePasswordReq req) {
         User user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException(getMsg("user.not.found")));
+        if (user.getAccountType() == AccountType.GUEST) {
+            throw new IllegalArgumentException(getMsg("guest.password.unavailable"));
+        }
         if (!passwordEncoder.matches(req.currentPassword(), user.getPasswordHash())) {
             throw new IllegalArgumentException(getMsg("user.password.wrong")); 
         }

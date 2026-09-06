@@ -56,6 +56,10 @@ app:
     from: "CineNight"
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://cinenight.tech,https://www.cinenight.tech,http://localhost:5173}
+  guest:
+    identity-pepper: ${APP_GUEST_IDENTITY_PEPPER:cinenight-local-dev-only}
+    max-accounts-per-ip-per-24h: ${APP_GUEST_MAX_ACCOUNTS_PER_IP:3}
+    trust-forwarded-headers: ${APP_GUEST_TRUST_FORWARDED_HEADERS:false}
 tmdb:
   api-key: ${TMDB_API_KEY}
   base-url: https://api.themoviedb.org/3

@@ -123,6 +123,11 @@ export default function RegisterPage() {
                 {t('auth.pages.register.already_have_account')}{' '}
                 <Link to="/login" className="font-medium text-indigo-400 hover:text-indigo-300">{t('auth.pages.register.login_link')}</Link>
             </p>
+            <p className="text-center text-sm text-gray-400">
+                <Link to="/guest" className="font-medium text-amber-300 hover:text-amber-200">
+                    {t('auth.pages.guest.create_link')}
+                </Link>
+            </p>
         </div>
     );
 }

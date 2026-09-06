@@ -17,6 +17,8 @@
     "login": "Login",
     "register": "Register",
     "logout": "Logout",
+    "guest": "Join as guest",
+    "guest_badge": "Guest account",
     "pages": {
       "login": {
         "title": "Login",
@@ -26,6 +28,27 @@
         "create_account": "Create Account",
         "error_generic": "Login failed.",
         "error_inactive": "Account not active yet. Please click the verification link sent to your email."
+      },
+      "guest": {
+        "eyebrow": "No email required",
+        "title": "Grab a guest pass",
+        "subtitle": "Choose a name and start planning. This browser will remember you.",
+        "tabs": { "create": "New guest", "returning": "I have a code" },
+        "username": "Guest name",
+        "username_placeholder": "movie_buff",
+        "username_hint": "3–24 letters, numbers, or underscores.",
+        "code": "Recovery code",
+        "submit": { "create": "Create guest pass", "returning": "Sign in as guest" },
+        "error": "Guest access failed.",
+        "login_link": "Use a guest pass instead",
+        "create_link": "Skip email and join as a guest",
+        "registered": "Have a regular account?",
+        "pass_label": "Your CineNight guest pass",
+        "save_title": "Save this code now",
+        "save_desc": "Use your guest name and this code to sign in from another computer or network. For security, the code is only shown once.",
+        "copy": "Copy name and code",
+        "copied": "Copied",
+        "continue": "Continue to my groups"
       },
       "register": {
         "title": "Create Account",
@@ -233,6 +256,7 @@
   },
   "profile": {
     "title": "Account Settings",
+    "account_eyebrow": "Your account",
     "section_profile": "Profile Info",
     "section_password": "Change Password",
     "email_warning": "Re-verification is required if email changes.",
@@ -247,7 +271,18 @@
     "msg_password_min": "New password must be at least 6 characters.",
     "msg_password_mismatch": "New passwords do not match.",
     "msg_password_updated": "Password updated successfully.",
-    "msg_password_failed": "Failed to update password."
+    "msg_password_failed": "Failed to update password.",
+    "guest": {
+      "eyebrow": "Guest pass",
+      "username": "Guest name",
+      "rename_hint": "After renaming, you will need to wait 24 hours before changing it again.",
+      "rename_available": "You can rename this account after {{date}}.",
+      "code_title": "Recovery code",
+      "code_desc": "Your code lets you sign in away from this device. Existing codes cannot be displayed again.",
+      "code_replace": "Create a new recovery code",
+      "code_warning": "Creating a new code immediately invalidates the old one. Store the new code somewhere safe.",
+      "code_failed": "Could not create a new recovery code."
+    }
   },
   "errors": {
     "unexpected_response": "Unexpected response format (no data).",

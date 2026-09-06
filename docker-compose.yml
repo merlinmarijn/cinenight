@@ -29,6 +29,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       TMDB_API_KEY: ${TMDB_API_KEY}
       APP_FRONTEND_BASE_URL: https://cinenight.tech
+      APP_GUEST_IDENTITY_PEPPER: ${APP_GUEST_IDENTITY_PEPPER:-cinenight-local-dev-only}
+      APP_GUEST_TRUST_FORWARDED_HEADERS: 'true'
       MAIL_HOST: smtp.gmail.com
       MAIL_USER: ${MAIL_USER}
       MAIL_PASS: ${MAIL_PASS}

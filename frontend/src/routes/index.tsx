@@ -11,6 +11,7 @@ import RegisterPage from '@/features/auth/RegisterPage';
 import ForgotPasswordPage from '@/features/auth/ForgotPasswordPage';
 import ResetPasswordPage from '@/features/auth/ResetPasswordPage';
 import VerifyEmailPage from '@/features/auth/VerifyEmailPage';
+import GuestAccessPage from '@/features/auth/GuestAccessPage';
 import TryDemoPage from '@/features/home/TryDemoPage';
 import GroupsPage from '@/features/groups/GroupsPage';
 import GroupDetailPage from '@/features/groups/GroupDetailPage';
@@ -60,7 +61,7 @@ export default function AppRoutes() {
                 {/* PROTECTED: Sadece giriş yapmış kullanıcılar */}
                 <Route element={<ProtectedRoute user={user} />}>
                     <Route path="/dashboard" element={<GroupsPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/profile" element={<ProfilePage user={user!} onUserUpdate={setUser} />} />
                     <Route path="/groups/:groupId" element={<GroupDetailPage />} />
                     <Route path="/join/:token" element={<JoinGroupPage />} />
                 </Route>
@@ -70,6 +71,7 @@ export default function AppRoutes() {
             <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage onLoginSuccess={handleLogin} />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/guest" element={<GuestAccessPage onLoginSuccess={handleLogin} />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />

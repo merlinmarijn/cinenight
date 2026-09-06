@@ -17,6 +17,8 @@
     "login": "Giriş",
     "register": "Kayıt Ol",
     "logout": "Çıkış Yap",
+    "guest": "Misafir olarak katıl",
+    "guest_badge": "Misafir hesabı",
     "pages": {
       "login": {
         "title": "Giriş",
@@ -26,6 +28,27 @@
         "create_account": "Hesap Oluştur",
         "error_generic": "Giriş yapılamadı.",
         "error_inactive": "Hesabın henüz aktif değil. Lütfen e-postana gönderilen doğrulama bağlantısına tıkla."
+      },
+      "guest": {
+        "eyebrow": "E-posta gerekmez",
+        "title": "Misafir kartını al",
+        "subtitle": "Bir ad seç ve planlamaya başla. Bu tarayıcı seni hatırlayacak.",
+        "tabs": { "create": "Yeni misafir", "returning": "Kodum var" },
+        "username": "Misafir adı",
+        "username_placeholder": "film_sever",
+        "username_hint": "3–24 harf, rakam veya alt çizgi.",
+        "code": "Kurtarma kodu",
+        "submit": { "create": "Misafir kartı oluştur", "returning": "Misafir olarak giriş yap" },
+        "error": "Misafir erişimi başarısız.",
+        "login_link": "Bunun yerine misafir kartı kullan",
+        "create_link": "E-postayı atla ve misafir olarak katıl",
+        "registered": "Normal hesabın var mı?",
+        "pass_label": "CineNight misafir kartın",
+        "save_title": "Bu kodu şimdi kaydet",
+        "save_desc": "Başka bir bilgisayar veya ağdan giriş yapmak için misafir adını ve bu kodu kullan. Güvenlik için kod yalnızca bir kez gösterilir.",
+        "copy": "Adı ve kodu kopyala",
+        "copied": "Kopyalandı",
+        "continue": "Gruplarıma devam et"
       },
       "register": {
         "title": "Hesap Oluştur",
@@ -233,6 +256,7 @@
   },
   "profile": {
     "title": "Hesap Ayarları",
+    "account_eyebrow": "Hesabın",
     "section_profile": "Profil Bilgileri",
     "section_password": "Şifre Değiştir",
     "email_warning": "E-posta değiştirildiğinde yeniden doğrulama gerekir.",
@@ -247,7 +271,18 @@
     "msg_password_min": "Yeni şifre en az 6 karakter olmalı.",
     "msg_password_mismatch": "Yeni şifreler eşleşmiyor.",
     "msg_password_updated": "Şifreniz başarıyla değiştirildi.",
-    "msg_password_failed": "Şifre değiştirilemedi."
+    "msg_password_failed": "Şifre değiştirilemedi.",
+    "guest": {
+      "eyebrow": "Misafir kartı",
+      "username": "Misafir adı",
+      "rename_hint": "Adını değiştirdikten sonra tekrar değiştirmek için 24 saat beklemen gerekir.",
+      "rename_available": "Bu hesabın adını {{date}} tarihinden sonra değiştirebilirsin.",
+      "code_title": "Kurtarma kodu",
+      "code_desc": "Kodun bu cihazdan uzaktayken giriş yapmanı sağlar. Mevcut kodlar tekrar görüntülenemez.",
+      "code_replace": "Yeni kurtarma kodu oluştur",
+      "code_warning": "Yeni kod oluşturmak eski kodu hemen geçersiz kılar. Yeni kodu güvenli bir yerde sakla.",
+      "code_failed": "Yeni kurtarma kodu oluşturulamadı."
+    }
   },
   "errors": {
     "unexpected_response": "Beklenmeyen yanıt biçimi (veri yok).",

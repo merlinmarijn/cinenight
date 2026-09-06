@@ -16,6 +16,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import com.zahid.cinenight.features.users.service.GuestRateLimitException;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -68,6 +69,13 @@ public class GlobalExceptionHandler {
                                                                      HttpServletRequest req) {
         logWarn(req, ex);
         return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(GuestRateLimitException.class)
+    public ResponseEntity<ApiResponse<Object>> handleGuestRateLimit(GuestRateLimitException ex,
+                                                                    HttpServletRequest req) {
+        logWarn(req, ex);
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ApiResponse.error(ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

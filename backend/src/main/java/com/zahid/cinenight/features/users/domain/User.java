@@ -12,7 +12,8 @@ import java.time.Instant;
 @Table(
         name = "users",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_users_email", columnNames = "email")
+                @UniqueConstraint(name = "uk_users_email", columnNames = "email"),
+                @UniqueConstraint(name = "uk_users_username", columnNames = "username")
         }
 )
 public class User {
@@ -45,4 +46,20 @@ public class User {
 
     @Column(name = "pending_email", length = 255)
     private String pendingEmail;
+
+    @Column(length = 24)
+    private String username;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_type", nullable = false, length = 16)
+    private AccountType accountType = AccountType.REGISTERED;
+
+    @Column(name = "guest_code_hash", length = 255)
+    private String guestCodeHash;
+
+    @Column(name = "guest_signup_ip_hash", length = 64)
+    private String guestSignupIpHash;
+
+    @Column(name = "display_name_changed_at")
+    private Instant displayNameChangedAt;
 }

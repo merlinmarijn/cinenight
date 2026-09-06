@@ -92,9 +92,14 @@ MAIL_STARTTLS=true
 APP_FRONTEND_BASE_URL=YOUR_APP_FRONTEND_URL
 DB_ROOT=YOUR_DB_ROOT_USERNAME
 DB_PASSWORD=YOUR_DB_ROOT_PASSWORD
+APP_GUEST_IDENTITY_PEPPER=GENERATE_A_LONG_RANDOM_SECRET
 
 TMDB_API_KEY=YOUR_API_KEY
 ```
+
+`APP_GUEST_IDENTITY_PEPPER` is required in production. CineNight uses it to HMAC guest device tokens and IP addresses before storing them; raw device tokens and IP addresses are never persisted. Guest creation defaults to three accounts per network in 24 hours and can be adjusted with `APP_GUEST_MAX_ACCOUNTS_PER_IP`.
+
+When the backend is behind a trusted reverse proxy that replaces `X-Forwarded-For`, set `APP_GUEST_TRUST_FORWARDED_HEADERS=true`. Leave it disabled when clients can connect directly to the backend.
 
 ### 3. Running with Docker (Recommended)
 This command will build the Backend (Maven), Frontend (Node/Vite), and start the Database (MySQL) all at once.
