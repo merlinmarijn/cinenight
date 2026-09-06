@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class GuestIdentityService {
     private static final String DEVICE_COOKIE = "CINENIGHT_GUEST_DEVICE";
+    private static final String NO_RESUME_COOKIE = "CINENIGHT_GUEST_NO_RESUME";
     private static final String CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Duration RENAME_COOLDOWN = Duration.ofHours(24);
@@ -158,6 +159,7 @@ public class GuestIdentityService {
 
     @Transactional
     public UserDto resume(HttpServletRequest request, HttpServletResponse response) {
+        if (hasCookie(request, NO_RESUME_COOKIE)) return null;
         String token = readDeviceToken(request);
         if (token == null) return null;
         var link = devices.findByDeviceHash(hash(token)).orElse(null);
@@ -176,6 +178,13 @@ public class GuestIdentityService {
         guest.setGuestCodeHash(passwordEncoder.encode(compactCode(plainCode)));
         users.save(guest);
         return formatCode(plainCode);
+    }
+
+    public void pauseAutomaticResume(HttpServletRequest request, HttpServletResponse response) {
+        if (readDeviceToken(request) == null) return;
+        addCookie(response, ResponseCookie.from(NO_RESUME_COOKIE, "1")
+                .httpOnly(true).secure(isSecureRequest(request)).sameSite("Lax")
+                .path("/").maxAge(Duration.ofDays(365)).build());
     }
 
     public static Duration renameCooldown() {
@@ -201,6 +210,9 @@ public class GuestIdentityService {
         SecurityContextHolder.setContext(context);
         request.getSession(true);
         securityContextRepository.saveContext(context, request, response);
+        addCookie(response, ResponseCookie.from(NO_RESUME_COOKIE, "")
+                .httpOnly(true).secure(isSecureRequest(request)).sameSite("Lax")
+                .path("/").maxAge(Duration.ZERO).build());
     }
 
     private DeviceIdentity getOrCreateDevice(HttpServletRequest request, HttpServletResponse response) {
@@ -210,9 +222,9 @@ public class GuestIdentityService {
             RANDOM.nextBytes(bytes);
             token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
             ResponseCookie cookie = ResponseCookie.from(DEVICE_COOKIE, token)
-                    .httpOnly(true).secure(request.isSecure()).sameSite("Lax")
+                    .httpOnly(true).secure(isSecureRequest(request)).sameSite("Lax")
                     .path("/").maxAge(Duration.ofDays(365)).build();
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            addCookie(response, cookie);
         }
         return new DeviceIdentity(hash(token));
     }
@@ -228,12 +240,28 @@ public class GuestIdentityService {
         return null;
     }
 
+    private boolean hasCookie(HttpServletRequest request, String name) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return false;
+        for (Cookie cookie : cookies) if (name.equals(cookie.getName())) return true;
+        return false;
+    }
+
+    private void addCookie(HttpServletResponse response, ResponseCookie cookie) {
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
     private String clientIp(HttpServletRequest request) {
         if (trustForwardedHeaders) {
             String forwarded = request.getHeader("X-Forwarded-For");
             if (forwarded != null && !forwarded.isBlank()) return forwarded.split(",", 2)[0].trim();
         }
         return request.getRemoteAddr();
+    }
+
+    private boolean isSecureRequest(HttpServletRequest request) {
+        return request.isSecure() || (trustForwardedHeaders &&
+                "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto")));
     }
 
     private String hash(String value) {

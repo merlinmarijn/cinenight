@@ -38,8 +38,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<String> logout(HttpServletRequest request) {
+    public ApiResponse<String> logout(HttpServletRequest request, HttpServletResponse response) {
         auth.logout(request);
+        guests.pauseAutomaticResume(request, response);
         return ApiResponse.ok("ok");
     }
 
