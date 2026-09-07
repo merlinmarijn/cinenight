@@ -41,7 +41,7 @@ public class User {
     private UserRole role = UserRole.USER;
 
     @Column(name = "can_create_groups", nullable = false)
-    private boolean canCreateGroups = true;
+    private boolean canCreateGroups = false;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

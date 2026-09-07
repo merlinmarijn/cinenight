@@ -29,11 +29,10 @@ class GroupServicePermissionTest {
     @Mock MessageSource messages;
 
     @Test
-    void normalUserWithoutPermissionCannotCreateGroup() {
+    void normalUserCannotCreateGroupByDefault() {
         User user = new User();
         user.setId(7L);
         user.setRole(UserRole.USER);
-        user.setCanCreateGroups(false);
         when(users.findById(7L)).thenReturn(Optional.of(user));
         GroupService service = new GroupService(groups, members, users, votes, messages);
 
