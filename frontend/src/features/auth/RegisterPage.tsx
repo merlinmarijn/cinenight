@@ -36,7 +36,7 @@ export default function RegisterPage() {
                 </div>
                 <h2 className="text-2xl font-bold text-white">{t('auth.pages.register.success_title')}</h2>
                 <p className="text-gray-300">
-                    {/* Trans bileşeni ile HTML içeren çeviri kullanımı */}
+                    {/* Translation containing rich text */}
                     <Trans
                         i18nKey="auth.pages.register.success_message"
                         values={{ email }}

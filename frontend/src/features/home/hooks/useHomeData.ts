@@ -8,13 +8,7 @@ export type TabKey = "trending" | "toprated" | "cinenight";
 export type UseHomeDataReturn = ReturnType<typeof useHomeData>;
 
 export function useHomeData(initialLimitTop = 12) {
-    const { t, i18n } = useTranslation();
-    const [lang, setLang] = useState(i18n.language || "tr-TR");
-
-    // Dil değiştiğinde state'i güncelle
-    useEffect(() => {
-        setLang(i18n.language);
-    }, [i18n.language]);
+    const { t } = useTranslation();
 
     const [q, setQ] = useState("");
     const [active, setActive] = useState<TabKey>("trending");
@@ -48,7 +42,7 @@ export function useHomeData(initialLimitTop = 12) {
         setLoadingTrend(true);
         setErrTrend(false);
         try {
-            const data = await fetchTrending(lang, pageNum);
+            const data = await fetchTrending(pageNum);
             setTrend((prev) => (append ? [...prev, ...data.results] : data.results));
             setPageTrend(data.page);
             setTotalPagesTrend(data.total_pages);
@@ -57,13 +51,13 @@ export function useHomeData(initialLimitTop = 12) {
         } finally {
             setLoadingTrend(false);
         }
-    }, [lang]);
+    }, []);
 
     const loadTopRated = useCallback(async (append = false, pageNum = 1) => {
         setLoadingTopRated(true);
         setErrTopRated(false);
         try {
-            const data = await fetchTopRated(lang, pageNum);
+            const data = await fetchTopRated(pageNum);
             setToprated((prev) => (append ? [...prev, ...data.results] : data.results));
             setPageTopRated(data.page);
             setTotalPagesTop(data.total_pages);
@@ -72,7 +66,7 @@ export function useHomeData(initialLimitTop = 12) {
         } finally {
             setLoadingTopRated(false);
         }
-    }, [lang]);
+    }, []);
 
     const loadTopCine = useCallback(async (limit: number) => {
         setLimitTop(limit);
@@ -96,7 +90,7 @@ export function useHomeData(initialLimitTop = 12) {
         setIsSearching(true);
         setSearchErr(null);
         try {
-            const resp = await searchMovies(query, lang, 1);
+            const resp = await searchMovies(query, 1);
             if(resp.ok) {
                 setSearchResults(resp.data);
             } else {
@@ -113,7 +107,7 @@ export function useHomeData(initialLimitTop = 12) {
         } finally {
             setIsSearching(false);
         }
-    }, [lang, t]);
+    }, [t]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -150,7 +144,6 @@ export function useHomeData(initialLimitTop = 12) {
 
 
     return {
-        lang, setLang,
         q, setQ,
         active, setActive,
         featured,

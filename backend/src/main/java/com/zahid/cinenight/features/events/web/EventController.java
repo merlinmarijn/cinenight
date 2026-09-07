@@ -33,7 +33,7 @@ public class EventController {
 
     private Long currentUserId(UserDetails principal) {
         if (principal == null)
-            throw new AccessDeniedException(messageSource.getMessage("auth.login.required", null, LocaleContextHolder.getLocale())); // LOKALİZE
+            throw new AccessDeniedException(messageSource.getMessage("auth.login.required", null, LocaleContextHolder.getLocale()));
         return users.findByEmail(principal.getUsername()).orElseThrow().getId();
     }
 

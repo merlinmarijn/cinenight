@@ -5,6 +5,7 @@ import com.zahid.cinenight.features.movies.dto.TmdbGenre;
 import com.zahid.cinenight.features.movies.dto.TmdbMovie;
 import com.zahid.cinenight.features.movies.dto.TmdbMoviePage;
 import com.zahid.cinenight.features.movies.service.GenreService;
+import com.zahid.cinenight.features.movies.service.MovieService;
 import com.zahid.cinenight.features.movies.service.TmdbClient;
 import org.springframework.stereotype.Service;
 
@@ -17,19 +18,21 @@ public class HomeService {
     private final TmdbClient tmdb;
     private final MovieRepository movies;
     private final GenreService genres;
+    private final MovieService movieService;
 
-    public HomeService(TmdbClient tmdb, MovieRepository movies, GenreService genres) {
+    public HomeService(TmdbClient tmdb, MovieRepository movies, GenreService genres, MovieService movieService) {
         this.tmdb = tmdb;
         this.movies = movies;
         this.genres = genres;
+        this.movieService = movieService;
     }
 
     /**
-     * TMDB trending: genre_ids -> genres enrich edilerek döner
+     * Returns trending TMDB movies enriched with genre names.
      */
-    public TmdbMoviePage trending(String lang, int page) {
-        TmdbMoviePage res = tmdb.trending(lang, page);
-        Map<Integer, String> map = genres.genreMap(lang);
+    public TmdbMoviePage trending(int page) {
+        TmdbMoviePage res = tmdb.trending(page);
+        Map<Integer, String> map = genres.genreMap();
 
         List<TmdbMovie> enriched = res.results().stream()
                 .map(m -> enrichGenres(m, map))
@@ -39,11 +42,11 @@ public class HomeService {
     }
 
     /**
-     * TMDB top_rated: genre_ids -> genres enrich edilerek döner
+     * Returns top-rated TMDB movies enriched with genre names.
      */
-    public TmdbMoviePage topRated(String lang, int page) {
-        TmdbMoviePage res = tmdb.topRated(lang, page);
-        Map<Integer, String> map = genres.genreMap(lang);
+    public TmdbMoviePage topRated(int page) {
+        TmdbMoviePage res = tmdb.topRated(page);
+        Map<Integer, String> map = genres.genreMap();
 
         List<TmdbMovie> enriched = res.results().stream()
                 .map(m -> enrichGenres(m, map))
@@ -53,7 +56,7 @@ public class HomeService {
     }
 
     /**
-     * Platform içi en popüler filmler (oy+izlenme skoru)
+     * Returns the platform's most popular movies by vote and view score.
      */
     public record TopMovie(
             Long id, Integer tmdbId, String title, String posterPath,
@@ -62,21 +65,22 @@ public class HomeService {
     }
 
     public List<TopMovie> topMovies(int limit) {
-        return movies.findTopMovies(limit).stream().map(r ->
-                new TopMovie(
+        return movies.findTopMovies(limit).stream().map(r -> {
+            MovieService.MovieDto englishMovie = movieService.byId(r.getTmdbId());
+            return new TopMovie(
                         r.getId(),
                         r.getTmdbId(),
-                        r.getTitle(),
-                        r.getPosterPath(),
-                        r.getBackdropPath(),
-                        r.getLanguage(),
-                        r.getReleaseYear(),
+                        englishMovie.title(),
+                        englishMovie.posterPath(),
+                        englishMovie.backdropPath(),
+                        englishMovie.language(),
+                        englishMovie.releaseYear(),
                         r.getVoteCount() == null ? 0 : r.getVoteCount(),
                         r.getAvgRating() == null ? 0d : r.getAvgRating(),
                         r.getViewCount() == null ? 0 : r.getViewCount(),
                         r.getScore() == null ? 0d : r.getScore()
-                )
-        ).toList();
+                );
+        }).toList();
     }
 
     private static TmdbMovie enrichGenres(TmdbMovie m, Map<Integer, String> map) {

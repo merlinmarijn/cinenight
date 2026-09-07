@@ -11,7 +11,7 @@ const MOCK_POLL_OPTIONS = [
         posterPath: '/ljsZTbVsrQSqZgWeep2B1QiDKuh.jpg',
         backdropPath: '/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg',
         voteCount: 4,
-        addedBy: 'Ahmet',
+        addedBy: 'Alex',
         isVotedByMe: false
     },
     {
@@ -21,7 +21,7 @@ const MOCK_POLL_OPTIONS = [
         posterPath: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
         backdropPath: '/pbrkL804c8yAv3zBZR4QPEafpAR.jpg',
         voteCount: 2,
-        addedBy: 'Zeynep',
+        addedBy: 'Zoe',
         isVotedByMe: false
     },
     {
@@ -39,16 +39,16 @@ const MOCK_POLL_OPTIONS = [
 const MOCK_EVENTS = [
     {
         id: 101,
-        title: 'Christopher Nolan Gecesi',
+        title: 'Christopher Nolan Night',
         startTime: new Date().toISOString(),
-        locationText: 'Discord #film-gecesi',
+        locationText: 'Discord #movie-night',
         movieTitle: 'Inception',
         backdropPath: '/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg',
         myRsvp: null as 'YES' | 'NO' | 'MAYBE' | null,
         participants: [
-            { userId: 1, displayName: 'Ahmet', avatarUrl: '' },
-            { userId: 2, displayName: 'Zeynep', avatarUrl: '' },
-            { userId: 3, displayName: 'Mehmet', avatarUrl: '' },
+            { userId: 1, displayName: 'Alex', avatarUrl: '' },
+            { userId: 2, displayName: 'Zoe', avatarUrl: '' },
+            { userId: 3, displayName: 'Michael', avatarUrl: '' },
         ]
     }
 ];
@@ -56,23 +56,23 @@ const MOCK_EVENTS = [
 const IMG_BASE = "https://image.tmdb.org/t/p";
 
 export default function TryDemoPage() {
-    // Local State ile interaktivite simülasyonu
+    // Local state for the interactive simulation
     const [options, setOptions] = useState(MOCK_POLL_OPTIONS);
     const [events, setEvents] = useState(MOCK_EVENTS);
     const { t } = useTranslation();
 
-    // Oy Verme Simülasyonu
+    // Voting simulation
     const handleVote = (id: number) => {
         setOptions(prev => prev.map(opt => {
-            // Önceki oyu kaldır
+            // Remove the previous vote
             if (opt.isVotedByMe) return { ...opt, isVotedByMe: false, voteCount: opt.voteCount - 1 };
-            // Yeni oyu ekle
+            // Add the new vote
             if (opt.id === id) return { ...opt, isVotedByMe: true, voteCount: opt.voteCount + 1 };
             return opt;
         }));
     };
 
-    // RSVP Simülasyonu
+    // RSVP simulation
     const handleRsvp = (eventId: number, status: 'YES' | 'NO') => {
         setEvents(prev => prev.map(evt => {
             if (evt.id === eventId) {
@@ -82,7 +82,7 @@ export default function TryDemoPage() {
         }));
     };
 
-    // Lideri bul
+    // Find the leader
     const maxVotes = Math.max(...options.map(o => o.voteCount));
     const winners = options.filter(o => o.voteCount === maxVotes && o.voteCount > 0);
     const isTie = winners.length > 1;
@@ -107,7 +107,7 @@ export default function TryDemoPage() {
                 </div>
             </div>
 
-            {/* --- ETKİNLİKLER --- */}
+            {/* Events */}
             <section className="space-y-4">
                 <div className="flex items-center gap-2 text-emerald-400 font-semibold uppercase tracking-wider text-sm">
                     <Calendar className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function TryDemoPage() {
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {events.map(evt => (
                         <div key={evt.id} className="relative group overflow-hidden rounded-3xl border border-white/10 bg-gray-900 shadow-2xl">
-                            {/* EKLENDİ: Etkinlik Arkaplan Görseli */}
+                            {/* Event background image */}
                             {evt.backdropPath && (
                                 <div className="absolute inset-0">
                                     <img
@@ -144,7 +144,7 @@ export default function TryDemoPage() {
                                                 <Clock className="h-3.5 w-3.5 text-emerald-400" />
                                                 21:00
                                             </div>
-                                            <div className="text-xs text-gray-300 capitalize drop-shadow-md">Cuma</div>
+                                            <div className="text-xs text-gray-300 capitalize drop-shadow-md">Friday</div>
                                         </div>
                                     </div>
                                     {evt.myRsvp === 'YES' && <span className="px-2 py-1 rounded bg-emerald-500 text-white text-[10px] font-bold shadow-lg">{t('groups.detail.coming_badge')}</span>}
@@ -164,7 +164,7 @@ export default function TryDemoPage() {
                                     </div>
                                 </div>
 
-                                {/* Katılımcılar */}
+                                {/* Participants */}
                                 <div className="flex items-center gap-2 mb-6 pt-4 border-t border-white/10">
                                     <div className="flex -space-x-2 overflow-hidden">
                                         {evt.participants.map(p => (
@@ -199,7 +199,7 @@ export default function TryDemoPage() {
 
             <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-            {/* --- ANKET --- */}
+            {/* Poll */}
             <section className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -215,7 +215,7 @@ export default function TryDemoPage() {
                 {winners.length > 0 && (
                     <div className={`relative overflow-hidden p-6 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl ${isTie ? 'bg-amber-900/20 border-amber-500/30' : 'bg-gray-900 border-indigo-500/30'}`}>
 
-                        {/* EKLENDİ: Lider Film Arkaplanı */}
+                        {/* Leading movie background */}
                         {!isTie && winner.backdropPath && (
                             <div className="absolute inset-0">
                                 <img
@@ -269,7 +269,7 @@ export default function TryDemoPage() {
                                     {isWinner && (
                                         <div className="absolute top-2 right-2 z-10">
                                             <div className={`text-white text-[10px] font-black px-2 py-1 rounded shadow-lg flex items-center gap-1 backdrop-blur-md ${isTie ? 'bg-amber-500' : 'bg-indigo-500'}`}>
-                                                <Trophy className="h-3 w-3" /> {isTie ? 'LİDER' : '#1'}
+                                                <Trophy className="h-3 w-3" /> {isTie ? 'LEADER' : '#1'}
                                             </div>
                                         </div>
                                     )}

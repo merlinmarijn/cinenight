@@ -48,14 +48,12 @@ async function request<T>(
 ): Promise<ApiResponse<T>> {
     const url = joinApiPath(path);
 
-    const currentLang = i18n.language || "tr";
-
     const res = await fetch(url, {
         method,
         credentials: "include",
         headers: {
             Accept: "application/json",
-            "Accept-Language": currentLang,
+            "Accept-Language": "en",
             ...(body != null ? { "Content-Type": "application/json" } : {}),
             ...(init?.headers ?? {}),
         },

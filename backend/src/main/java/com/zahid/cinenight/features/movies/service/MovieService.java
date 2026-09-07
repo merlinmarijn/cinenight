@@ -63,41 +63,34 @@ public class MovieService {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }
 
-    /**
-     * DÜZELTME: Cache key artık ID ve DİL kombinasyonunu içeriyor.
-     * Ayrıca DB'de olsa bile güncel dildeki veriyi TMDB'den çekip DB'yi güncelliyor.
-     */
-    @Cacheable(value = "movieById", key = "#tmdbId + '-' + #lang")
-    public MovieDto byId(int tmdbId, String lang) {
+    @Cacheable(value = "movieById", key = "#tmdbId")
+    public MovieDto byId(int tmdbId) {
         try {
-            // 1. TMDB'den taze veriyi çek (istenilen dilde)
-            TmdbMovie tm = tmdb.movieDetail(tmdbId, lang);
+            TmdbMovie tm = tmdb.movieDetail(tmdbId);
 
-            // 2. Veritabanını güncelle veya yeni ekle (Upsert) ve DTO dön
-            return MovieDto.from(self.upsertFromTmdb(tm, lang));
+            return MovieDto.from(self.upsertFromTmdb(tm));
         } catch (Exception e) {
-            // 3. Hata durumunda (TMDB erişilemezse) mecburen DB'deki eski kaydı dön
             return movies.findByTmdbId(tmdbId)
                     .map(MovieDto::from)
                     .orElseThrow(() -> new IllegalStateException(getMsg("movie.load.failed"), e));
         }
     }
 
-    @Cacheable(value = "movieSearch", key = "#q+'|'+#lang+'|'+#page")
-    public PagedMovies search(String q, String lang, int page) {
-        TmdbMoviePage res = tmdb.search(q, lang, page);
-        var saved = res.results().stream().map(t -> self.upsertFromTmdb(t, lang)).toList();
+    @Cacheable(value = "movieSearch", key = "#q+'|'+#page")
+    public PagedMovies search(String q, int page) {
+        TmdbMoviePage res = tmdb.search(q, page);
+        var saved = res.results().stream().map(self::upsertFromTmdb).toList();
         return new PagedMovies(res.page(), res.total_pages(), saved.stream().map(MovieDto::from).toList());
     }
 
-    @Cacheable(value = "movieTrending", key = "#lang+'|'+#page")
-    public PagedMovies trending(String lang, int page) {
-        TmdbMoviePage res = tmdb.trending(lang, page);
-        var saved = res.results().stream().map(t -> self.upsertFromTmdb(t, lang)).toList();
+    @Cacheable(value = "movieTrending", key = "#page")
+    public PagedMovies trending(int page) {
+        TmdbMoviePage res = tmdb.trending(page);
+        var saved = res.results().stream().map(self::upsertFromTmdb).toList();
         return new PagedMovies(res.page(), res.total_pages(), saved.stream().map(MovieDto::from).toList());
     }
 
-    public Movie upsertFromTmdb(TmdbMovie t, String lang) {
+    public Movie upsertFromTmdb(TmdbMovie t) {
         int maxRetries = 3;
 
         for (int i = 0; i < maxRetries; i++) {
@@ -105,9 +98,9 @@ public class MovieService {
                 var existing = self.findMovieSafely(t.id());
 
                 if (existing.isPresent()) {
-                    return self.updateAndSave(existing.get(), t, lang);
+                    return self.updateAndSave(existing.get(), t);
                 } else {
-                    return self.createMovieSafely(t, lang);
+                    return self.createMovieSafely(t);
                 }
             } catch (Exception e) {
                 if (i == maxRetries - 1) throw e;
@@ -123,23 +116,23 @@ public class MovieService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Movie createMovieSafely(TmdbMovie t, String lang) {
+    public Movie createMovieSafely(TmdbMovie t) {
         if (movies.findByTmdbId(t.id()).isPresent()) {
             throw new DataIntegrityViolationException("Exists");
         }
         Movie m = new Movie();
         m.setTmdbId(t.id());
-        mapFields(m, t, lang);
+        mapFields(m, t);
         return movies.saveAndFlush(m);
     }
 
     @Transactional
-    public Movie updateAndSave(Movie m, TmdbMovie t, String lang) {
-        mapFields(m, t, lang);
+    public Movie updateAndSave(Movie m, TmdbMovie t) {
+        mapFields(m, t);
         return movies.save(m);
     }
 
-    private void mapFields(Movie m, TmdbMovie t, String lang) {
+    private void mapFields(Movie m, TmdbMovie t) {
         String newTitle = t.title() != null ? t.title() : (t.name() != null ? t.name() : getMsg("movie.title.unknown"));
         m.setTitle(newTitle);
         m.setOriginalTitle(t.original_title());
@@ -157,15 +150,15 @@ public class MovieService {
         if (t.genres() != null && !t.genres().isEmpty()) {
             m.setGenres(t.genres().stream().map(TmdbGenre::name).collect(Collectors.joining(",")));
         } else if (t.genre_ids() != null && !t.genre_ids().isEmpty()) {
-            var map = genreService.genreMap(lang);
+            var map = genreService.genreMap();
             m.setGenres(t.genre_ids().stream().map(id -> map.getOrDefault(id, String.valueOf(id))).collect(Collectors.joining(",")));
         }
         m.setFetchedAt(Instant.now());
     }
 
-    public void recordView(int tmdbId, String lang, String ip, String ua) {
+    public void recordView(int tmdbId, String ip, String ua) {
         try {
-            Movie m = self.upsertFromTmdb(tmdb.movieDetail(tmdbId, lang), lang);
+            Movie m = self.upsertFromTmdb(tmdb.movieDetail(tmdbId));
 
             var v = new MovieView(m);
             v.setIp(ip);
@@ -176,9 +169,9 @@ public class MovieService {
         }
     }
 
-    public void rate(int tmdbId, String lang, byte rating) {
+    public void rate(int tmdbId, byte rating) {
         if (rating < 1 || rating > 10) throw new IllegalArgumentException(getMsg("movie.rating.invalid"));
-        Movie m = self.upsertFromTmdb(tmdb.movieDetail(tmdbId, lang), lang);
+        Movie m = self.upsertFromTmdb(tmdb.movieDetail(tmdbId));
         var vote = new MovieVote(m, rating);
         votes.save(vote);
     }

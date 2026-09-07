@@ -56,34 +56,34 @@ export type HomeTopMovie = {
     description?: string | null;
 };
 
-export function tmdbTrending(lang = "tr-TR", page = 1) {
-    return apiGet<TmdbMoviePage>(`/home/trending?lang=${encodeURIComponent(lang)}&page=${page}`);
+export function tmdbTrending(page = 1) {
+    return apiGet<TmdbMoviePage>(`/home/trending?page=${page}`);
 }
 
-export function tmdbTopRated(lang = "tr-TR", page = 1) {
-    return apiGet<TmdbMoviePage>(`/home/top-rated?lang=${encodeURIComponent(lang)}&page=${page}`);
+export function tmdbTopRated(page = 1) {
+    return apiGet<TmdbMoviePage>(`/home/top-rated?page=${page}`);
 }
 
 export function topMovies(limit = 10) {
     return apiGet<HomeTopMovie[]>(`/home/top-movies?limit=${limit}`);
 }
 
-export function byId(tmdbId: number, language = "tr-TR") {
-    return apiGet<MovieDto>(`/movies/${tmdbId}?language=${encodeURIComponent(language)}`);
+export function byId(tmdbId: number) {
+    return apiGet<MovieDto>(`/movies/${tmdbId}`);
 }
 
-export function search(q: string, language = "tr-TR", page = 1) {
+export function search(q: string, page = 1) {
     return apiGet<PagedMovies>(
-        `/movies/search?q=${encodeURIComponent(q)}&language=${encodeURIComponent(language)}&page=${page}`
+        `/movies/search?q=${encodeURIComponent(q)}&page=${page}`
     );
 }
 
-export function recordView(tmdbId: number, language = "tr-TR") {
-    return apiPost<void>(`/movies/${tmdbId}/view?language=${encodeURIComponent(language)}`);
+export function recordView(tmdbId: number) {
+    return apiPost<void>(`/movies/${tmdbId}/view`);
 }
 
-export function vote(tmdbId: number, rating: number, language = "tr-TR") {
-    return apiPost<void>(`/movies/${tmdbId}/vote?rating=${rating}&language=${encodeURIComponent(language)}`);
+export function vote(tmdbId: number, rating: number) {
+    return apiPost<void>(`/movies/${tmdbId}/vote?rating=${rating}`);
 }
 
 export const MoviesApi = {
@@ -96,6 +96,6 @@ export const MoviesApi = {
     vote,
 };
 
-export const searchMovies = (q: string, language="tr-TR", page=1) =>
-    apiGet<PagedMovies>(`/api/v1/movies/search?q=${encodeURIComponent(q)}&language=${language}&page=${page}`);
+export const searchMovies = (q: string, page=1) =>
+    apiGet<PagedMovies>(`/movies/search?q=${encodeURIComponent(q)}&page=${page}`);
 

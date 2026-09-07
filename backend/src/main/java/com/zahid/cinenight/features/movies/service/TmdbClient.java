@@ -12,6 +12,8 @@ import org.springframework.web.client.RestClient;
 @Service
 public class TmdbClient {
 
+    public static final String ENGLISH_LANGUAGE = "en-US";
+
     private final RestClient rest;
     private final String apiKeyParam;
 
@@ -44,42 +46,42 @@ public class TmdbClient {
                 : pathAndQuery + "?api_key=" + apiKeyParam;
     }
 
-    public TmdbMoviePage trending(String lang, int page) {
+    public TmdbMoviePage trending(int page) {
         String uri = withKey("/trending/movie/day?language={lang}&page={page}");
         return rest.get()
-                .uri(uri, lang, page)
+                .uri(uri, ENGLISH_LANGUAGE, page)
                 .retrieve()
                 .body(TmdbMoviePage.class);
     }
 
-    public TmdbMoviePage topRated(String lang, int page) {
+    public TmdbMoviePage topRated(int page) {
         String uri = withKey("/movie/top_rated?language={lang}&page={page}");
         return rest.get()
-                .uri(uri, lang, page)
+                .uri(uri, ENGLISH_LANGUAGE, page)
                 .retrieve()
                 .body(TmdbMoviePage.class);
     }
 
-    public TmdbMoviePage search(String q, String lang, int page) {
+    public TmdbMoviePage search(String q, int page) {
         String uri = withKey("/search/movie?query={q}&language={lang}&page={page}");
         return rest.get()
-                .uri(uri, q, lang, page)
+                .uri(uri, q, ENGLISH_LANGUAGE, page)
                 .retrieve()
                 .body(TmdbMoviePage.class);
     }
 
-    public TmdbMovie movieDetail(int tmdbId, String lang) {
+    public TmdbMovie movieDetail(int tmdbId) {
         String uri = withKey("/movie/{id}?language={lang}&append_to_response=credits");
         return rest.get()
-                .uri(uri, tmdbId, lang)
+                .uri(uri, tmdbId, ENGLISH_LANGUAGE)
                 .retrieve()
                 .body(TmdbMovie.class);
     }
 
-    public TmdbGenresResponse genres(String lang) {
+    public TmdbGenresResponse genres() {
         String uri = withKey("/genre/movie/list?language={lang}");
         return rest.get()
-                .uri(uri, lang)
+                .uri(uri, ENGLISH_LANGUAGE)
                 .retrieve()
                 .body(TmdbGenresResponse.class);
     }

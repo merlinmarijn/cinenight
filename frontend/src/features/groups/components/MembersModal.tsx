@@ -42,7 +42,7 @@ export default function MembersModal({ groupId, isOwner, onClose }: Props) {
 
         if (res.ok) {
             setMembers(prev => prev.filter(m => m.userId !== userToRemove));
-            setUserToRemove(null); // Modalı kapat
+            setUserToRemove(null);
         } else {
             alert(res.error || t('errors.action_failed'));
         }
@@ -100,7 +100,7 @@ export default function MembersModal({ groupId, isOwner, onClose }: Props) {
                 </div>
             </div>
 
-            {/* ÜYE ÇIKARMA ONAY MODALI */}
+            {/* Member removal confirmation */}
             <ConfirmModal
                 isOpen={!!userToRemove}
                 onClose={() => setUserToRemove(null)}

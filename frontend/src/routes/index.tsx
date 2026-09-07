@@ -52,13 +52,13 @@ export default function AppRoutes() {
 
     return (
         <Routes>
-            {/* PUBLIC: Herkes görebilir */}
+            {/* Public routes */}
             <Route element={<RootLayout user={user} onLogout={handleLogout} />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/try" element={<TryDemoPage />} />
                 <Route path="/explore" element={<ExplorePage />} />
 
-                {/* PROTECTED: Sadece giriş yapmış kullanıcılar */}
+                {/* Protected routes */}
                 <Route element={<ProtectedRoute user={user} />}>
                     <Route path="/dashboard" element={<GroupsPage />} />
                     <Route path="/profile" element={<ProfilePage user={user!} onUserUpdate={setUser} />} />
@@ -67,7 +67,7 @@ export default function AppRoutes() {
                 </Route>
             </Route>
 
-            {/* AUTH: Giriş/Kayıt işlemleri */}
+            {/* Authentication routes */}
             <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage onLoginSuccess={handleLogin} />} />
                 <Route path="/register" element={<RegisterPage />} />

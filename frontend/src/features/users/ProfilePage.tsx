@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 type Message = { type: 'success' | 'error' | 'info'; text: string };
 
 export default function ProfilePage({ user, onUserUpdate }: { user: UserDto; onUserUpdate: (user: UserDto) => void }) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const isGuest = user.accountType === 'GUEST';
     const [name, setName] = useState(user.displayName);
     const [email, setEmail] = useState(user.email || '');
@@ -85,7 +85,7 @@ export default function ProfilePage({ user, onUserUpdate }: { user: UserDto; onU
                             <User className="mr-2 h-4 w-4 text-gray-500" />
                             <input value={name} onChange={event => setName(event.target.value)} required minLength={isGuest ? 3 : 2} maxLength={isGuest ? 24 : 100} pattern={isGuest ? '[A-Za-z0-9_]+' : undefined} disabled={renameLocked} className="w-full border-none bg-transparent py-3 text-white focus:outline-none disabled:cursor-not-allowed disabled:text-gray-500" />
                         </div>
-                        {renameLocked && renameDate ? <p className="mt-2 text-xs leading-5 text-amber-200/80">{t('profile.guest.rename_available', { date: renameDate.toLocaleString(i18n.language) })}</p> : isGuest ? <p className="mt-2 text-xs text-gray-500">{t('profile.guest.rename_hint')}</p> : null}
+                        {renameLocked && renameDate ? <p className="mt-2 text-xs leading-5 text-amber-200/80">{t('profile.guest.rename_available', { date: renameDate.toLocaleString('en-US') })}</p> : isGuest ? <p className="mt-2 text-xs text-gray-500">{t('profile.guest.rename_hint')}</p> : null}
                     </div>
 
                     {!isGuest ? <div>

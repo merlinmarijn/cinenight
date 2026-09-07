@@ -13,9 +13,9 @@ public class GenreService {
     private final TmdbClient tmdb;
     public GenreService(TmdbClient tmdb) { this.tmdb = tmdb; }
 
-    @Cacheable(value = "tmdbGenreMap", key = "#lang")
-    public Map<Integer,String> genreMap(String lang) {
-        TmdbGenresResponse res = tmdb.genres(lang);
+    @Cacheable("tmdbGenreMap")
+    public Map<Integer,String> genreMap() {
+        TmdbGenresResponse res = tmdb.genres();
         return res.genres().stream().collect(Collectors.toMap(TmdbGenre::id, TmdbGenre::name));
     }
 }

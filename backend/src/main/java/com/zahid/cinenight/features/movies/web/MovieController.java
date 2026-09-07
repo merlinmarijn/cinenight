@@ -13,37 +13,32 @@ public class MovieController {
     public MovieController(MovieService service) { this.service = service; }
 
     @GetMapping("/{tmdbId}")
-    public ApiResponse<MovieService.MovieDto> byId(@PathVariable int tmdbId,
-                                                   @RequestParam(defaultValue = "tr-TR") String language) {
-        return ApiResponse.ok(service.byId(tmdbId, language));
+    public ApiResponse<MovieService.MovieDto> byId(@PathVariable int tmdbId) {
+        return ApiResponse.ok(service.byId(tmdbId));
     }
 
     @GetMapping("/search")
     public ApiResponse<MovieService.PagedMovies> search(@RequestParam String q,
-                                                        @RequestParam(defaultValue = "tr-TR") String language,
                                                         @RequestParam(defaultValue = "1") int page) {
-        return ApiResponse.ok(service.search(q, language, page));
+        return ApiResponse.ok(service.search(q, page));
     }
 
     @GetMapping("/trending")
-    public ApiResponse<MovieService.PagedMovies> trending(@RequestParam(defaultValue = "tr-TR") String language,
-                                                          @RequestParam(defaultValue = "1") int page) {
-        return ApiResponse.ok(service.trending(language, page));
+    public ApiResponse<MovieService.PagedMovies> trending(@RequestParam(defaultValue = "1") int page) {
+        return ApiResponse.ok(service.trending(page));
     }
 
     @PostMapping("/{tmdbId}/view")
     public ApiResponse<Void> view(@PathVariable int tmdbId,
-                                  @RequestParam(defaultValue = "tr-TR") String language,
                                   HttpServletRequest req) {
-        service.recordView(tmdbId, language, req.getRemoteAddr(), req.getHeader("User-Agent"));
+        service.recordView(tmdbId, req.getRemoteAddr(), req.getHeader("User-Agent"));
         return ApiResponse.ok(null);
     }
 
     @PostMapping("/{tmdbId}/vote")
     public ApiResponse<Void> vote(@PathVariable int tmdbId,
-                                  @RequestParam byte rating,
-                                  @RequestParam(defaultValue = "tr-TR") String language) {
-        service.rate(tmdbId, language, rating);
+                                  @RequestParam byte rating) {
+        service.rate(tmdbId, rating);
         return ApiResponse.ok(null);
     }
 

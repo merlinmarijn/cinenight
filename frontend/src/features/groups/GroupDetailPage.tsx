@@ -6,7 +6,7 @@ import { fetchMyGroups, deleteGroup, leaveGroup } from '@/api/groups';
 import { ChevronLeft, Loader2, Share2, Check, Calendar, MapPin, Film, X, Trophy, Clock, Settings, Trash2, LogOut } from 'lucide-react';
 import MovieDetailModal from '@/components/MovieDetailModal';
 import { format } from 'date-fns';
-import { tr, enUS } from 'date-fns/locale'; // enUS Eklendi
+import { enUS } from 'date-fns/locale';
 import CreateEventModal from './components/CreateEventModal';
 import MembersModal from './components/MembersModal';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -17,15 +17,14 @@ const IMG = "https://image.tmdb.org/t/p";
 export default function GroupDetailPage() {
     const { groupId } = useParams();
     const navigate = useNavigate();
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
-    // Tarih formatı için locale seçimi
-    const dateLocale = i18n.language === 'en' ? enUS : tr;
+    const dateLocale = enUS;
 
     // --- State ---
     const [poll, setPoll] = useState<PollDetailDto | null>(null);
     const [events, setEvents] = useState<EventDto[]>([]);
-    const [role, setRole] = useState<string>('MEMBER'); // Kullanıcı rolü (OWNER/MEMBER)
+    const [role, setRole] = useState<string>('MEMBER');
     const [loading, setLoading] = useState(true);
 
     // --- Actions ---
@@ -38,7 +37,7 @@ export default function GroupDetailPage() {
     const [showEventModal, setShowEventModal] = useState(false);
     const [showMembersModal, setShowMembersModal] = useState(false);
 
-    // Silme ve Ayrılma Modalları
+    // Delete and leave confirmation modals
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -47,11 +46,11 @@ export default function GroupDetailPage() {
 
     const [inviteToken, setInviteToken] = useState<string | null>(null);
 
-    // Verileri Yükle
+    // Load data
     const loadData = async () => {
         if (!groupId) return;
         try {
-            // Paralel veri çekme
+            // Fetch data in parallel
             const [pollRes, eventsRes, groupsRes] = await Promise.all([
                 fetchActivePoll(Number(groupId)),
                 fetchGroupEvents(Number(groupId)),
@@ -66,7 +65,7 @@ export default function GroupDetailPage() {
 
             if (eventsRes.ok && eventsRes.data) setEvents(eventsRes.data);
 
-            // Kullanıcının bu gruptaki rolünü bul
+            // Find the current user's role in this group
             if (groupsRes.ok && groupsRes.data) {
                 const currentGroup = groupsRes.data.find(g => g.id === Number(groupId));
                 if (currentGroup) {
@@ -99,7 +98,7 @@ export default function GroupDetailPage() {
         setVotingId(null);
     };
 
-    // RSVP (Katılım Durumu)
+    // RSVP status
     const handleRsvp = async (eventId: number, status: 'YES' | 'NO') => {
         setRsvpLoading(eventId);
         await rsvpEvent(eventId, status);
@@ -108,7 +107,7 @@ export default function GroupDetailPage() {
         setRsvpLoading(null);
     };
 
-    // Grubu Silme (Sadece Owner)
+    // Delete the group (owner only)
     const handleDeleteGroup = async () => {
         setDeleteLoading(true);
         const res = await deleteGroup(Number(groupId));
@@ -121,7 +120,7 @@ export default function GroupDetailPage() {
         }
     };
 
-    // Gruptan Ayrılma (Sadece Member)
+    // Leave the group (members only)
     const handleLeaveGroup = async () => {
         setLeaveLoading(true);
         const res = await leaveGroup(Number(groupId));
@@ -175,7 +174,7 @@ export default function GroupDetailPage() {
                 </div>
 
                 <div className="flex gap-2">
-                    {/* YÖNETİCİ İSE SİL BUTONU */}
+                    {/* Owner delete action */}
                     {role === 'OWNER' && (
                         <button
                             onClick={() => setShowDeleteConfirm(true)}
@@ -186,7 +185,7 @@ export default function GroupDetailPage() {
                         </button>
                     )}
 
-                    {/* ÜYE İSE AYRIL BUTONU */}
+                    {/* Member leave action */}
                     {role !== 'OWNER' && (
                         <button
                             onClick={() => setShowLeaveConfirm(true)}
@@ -215,7 +214,7 @@ export default function GroupDetailPage() {
                 </div>
             </div>
 
-            {/* --- BÖLÜM 1: ETKİNLİKLER --- */}
+            {/* Events */}
             {events.length > 0 && (
                 <section className="space-y-4">
                     <div className="flex items-center gap-2 text-emerald-400 font-semibold uppercase tracking-wider text-sm">
@@ -251,7 +250,7 @@ export default function GroupDetailPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        {/* Katılım Durumu Rozeti */}
+                                        {/* RSVP badge */}
                                         {evt.myRsvp === 'YES' && <span className="px-2 py-1 rounded bg-emerald-500 text-white text-[10px] font-bold shadow-lg">{t('groups.detail.coming_badge')}</span>}
                                         {evt.myRsvp === 'NO' && <span className="px-2 py-1 rounded bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-bold">{t('groups.detail.not_coming_badge')}</span>}
                                     </div>
@@ -275,7 +274,7 @@ export default function GroupDetailPage() {
                                         )}
                                     </div>
 
-                                    {/* Katılımcı Listesi */}
+                                    {/* Participant list */}
                                     {evt.participants && evt.participants.length > 0 && (
                                         <div className="flex items-center gap-2 mb-6 pt-4 border-t border-white/5">
                                             <div className="flex -space-x-2 overflow-hidden">
@@ -297,7 +296,7 @@ export default function GroupDetailPage() {
                                         </div>
                                     )}
 
-                                    {/* Aksiyon Butonları */}
+                                    {/* Actions */}
                                     <div className="flex gap-3 mt-auto">
                                         <button
                                             onClick={() => handleRsvp(evt.id, 'YES')}
@@ -322,10 +321,10 @@ export default function GroupDetailPage() {
                 </section>
             )}
 
-            {/* Ayırıcı Çizgi */}
+            {/* Divider */}
             {events.length > 0 && poll && <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />}
 
-            {/* --- BÖLÜM 2: ANKET --- */}
+            {/* Poll */}
             {poll ? (
                 <section className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -338,7 +337,7 @@ export default function GroupDetailPage() {
                         </div>
                     </div>
 
-                    {/* LİDER PANOSU & PLANLAMA BUTONU (Sadece Owner Görür) */}
+                    {/* Leader panel and owner planning action */}
                     {poll.isOpen && winners.length > 0 && role === 'OWNER' && (
                         <div className={`relative overflow-hidden p-6 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl ${isTie ? 'bg-amber-900/20 border-amber-500/30' : 'bg-gradient-to-r from-indigo-900/60 to-purple-900/60 border-indigo-500/30'}`}>
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -368,7 +367,7 @@ export default function GroupDetailPage() {
                         </div>
                     )}
 
-                    {/* FİLM LİSTESİ (GRID) */}
+                    {/* Movie grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                         {poll.options.map((opt) => {
                             const isWinner = winners.some(w => w.id === opt.id);
@@ -400,14 +399,14 @@ export default function GroupDetailPage() {
                                             </div>
                                         )}
 
-                                        {/* Gölge Efekti */}
+                                        {/* Shadow effect */}
                                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-80" />
 
                                         {/* Lider Badge */}
                                         {isWinner && (
                                             <div className="absolute top-2 right-2 z-10">
                                                 <div className={`text-white text-[10px] font-black px-2 py-1 rounded shadow-lg flex items-center gap-1 backdrop-blur-md ${isTie ? 'bg-amber-500' : 'bg-indigo-500'}`}>
-                                                    <Trophy className="h-3 w-3" /> {isTie ? 'LİDER' : '#1'}
+                                                    <Trophy className="h-3 w-3" /> {isTie ? 'LEADER' : '#1'}
                                                 </div>
                                             </div>
                                         )}
@@ -465,7 +464,7 @@ export default function GroupDetailPage() {
                     </div>
                 </section>
             ) : (
-                // Boş Durum (Ne Etkinlik Ne Anket Var)
+                // Empty state: no events or poll
                 events.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-24 bg-gray-900/30 rounded-3xl border border-dashed border-gray-700 text-center">
                         <div className="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mb-6 text-gray-600">
@@ -510,7 +509,7 @@ export default function GroupDetailPage() {
                 />
             )}
 
-            {/* SİLME ONAY MODALI */}
+            {/* Delete confirmation */}
             <ConfirmModal
                 isOpen={showDeleteConfirm}
                 onClose={() => setShowDeleteConfirm(false)}
@@ -523,7 +522,7 @@ export default function GroupDetailPage() {
                 loading={deleteLoading}
             />
 
-            {/* AYRILMA ONAY MODALI */}
+            {/* Leave confirmation */}
             <ConfirmModal
                 isOpen={showLeaveConfirm}
                 onClose={() => setShowLeaveConfirm(false)}

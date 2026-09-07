@@ -24,7 +24,7 @@ public class UserService {
     private final VerificationTokenRepository verifyTokens;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
-    private final MessageSource messageSource; // EKLENDİ
+    private final MessageSource messageSource;
 
     @Value("${app.frontend.base-url}")
     private String frontendBaseUrl;

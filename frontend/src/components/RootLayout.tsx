@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { UserDto, logout } from '@/api/auth';
 import { LayoutDashboard, LogOut } from 'lucide-react';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 
 interface RootLayoutProps {
@@ -20,7 +19,7 @@ export default function RootLayout({ user, onLogout }: RootLayoutProps) {
         if (metaDesc) {
             metaDesc.setAttribute('content', t('meta.description'));
         }
-        document.documentElement.lang = localStorage.getItem('i18nextLng') || 'tr';
+        document.documentElement.lang = 'en';
     }, [t]);
 
     const handleLogout = async () => {
@@ -65,8 +64,6 @@ export default function RootLayout({ user, onLogout }: RootLayoutProps) {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <LanguageSwitcher />
-
                         {user ? (
                             <div className="flex items-center gap-4 pl-4 border-l border-white/10">
                                 <Link

@@ -23,11 +23,11 @@ public class WebController {
     }
 
     @GetMapping("/about")
-    public String aboutPage(Model model, Locale locale) {
+    public String aboutPage(Model model) {
         long userCount = userRepository.count();
 
         String serverTime = LocalDateTime.now().format(
-                DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm:ss", locale)
+                DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm:ss", Locale.ENGLISH)
         );
 
         model.addAttribute("appName", "CineNight");

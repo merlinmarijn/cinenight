@@ -33,8 +33,7 @@ public class EventService {
             LocalDateTime endTime,
             String timezone,
             String locationText,
-            String locationUrl,
-            String language
+            String locationUrl
     ) {}
 
     public record ParticipantDto(Long userId, String displayName, String avatarUrl, String status) {}
@@ -48,9 +47,10 @@ public class EventService {
             String myRsvp,
             List<ParticipantDto> participants
     ) {
-        public static EventDto from(WatchEvent e, String myRsvp, List<ParticipantDto> participants) {
+        public static EventDto from(WatchEvent e, String myRsvp, List<ParticipantDto> participants,
+                                    MovieService.MovieDto englishMovie) {
             Integer tmdbId = Optional.ofNullable(e.getMovie()).map(Movie::getTmdbId).orElse(null);
-            String movieTitle = Optional.ofNullable(e.getMovie()).map(Movie::getTitle).orElse(null);
+            String movieTitle = englishMovie == null ? null : englishMovie.title();
             return new EventDto(
                     e.getId(), e.getGroup().getId(), e.getTitle(),
                     tmdbId, movieTitle,
@@ -92,14 +92,14 @@ public class EventService {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }
 
-    /** Grup üyesi mi kontrolü */
+    /** Verifies group membership. */
     private void ensureMember(Long groupId, Long userId) {
         var key = new GroupMemberId(groupId, userId);
         if (members.findById(key).isEmpty())
             throw new IllegalArgumentException(getMsg("group.not.member"));
     }
 
-    /** Event oluştur */
+    /** Creates an event. */
     @Transactional
     public EventDto create(CreateEventReq req, Long currentUserId) {
         Group g = groups.findById(req.groupId()).orElseThrow(() -> new IllegalArgumentException(getMsg("group.not.found")));
@@ -117,8 +117,7 @@ public class EventService {
         e.setCreatedBy(users.findById(currentUserId).orElse(null));
 
         if (req.tmdbId() != null) {
-            var lang = (req.language() == null || req.language().isBlank()) ? "tr-TR" : req.language();
-            movieService.byId(req.tmdbId(), lang);
+            movieService.byId(req.tmdbId());
             Movie m = movies.findByTmdbId(req.tmdbId()).orElseThrow();
             e.setMovie(m);
         }
@@ -126,28 +125,27 @@ public class EventService {
         e.setIcalUid(generateUidIfAbsent(e.getIcalUid()));
         events.save(e);
 
-        // Oluşturan kişi henüz RSVP yapmadı ama mantıken 'YES' sayılabilir. Şimdilik boş liste ve null dönüyoruz.
-        // İstersen otomatik RSVP ekleyebilirsin.
-        return EventDto.from(e, null, List.of());
+        // The creator has not submitted an RSVP yet.
+        return EventDto.from(e, null, List.of(), englishMovie(e));
     }
 
     public EventDto get(Long eventId, Long currentUserId) {
         WatchEvent e = events.findById(eventId).orElseThrow(() -> new IllegalArgumentException(getMsg("event.not.found")));
         ensureMember(e.getGroup().getId(), currentUserId);
 
-        // Bu etkinliğe ait tüm RSVP'ler
+        // All RSVPs for this event
         var allRsvps = rsvps.findAll().stream()
                 .filter(r -> r.getEvent().getId().equals(eventId))
                 .toList();
 
-        // Benim durumum
+        // Current user's status
         String myStatus = allRsvps.stream()
                 .filter(r -> r.getUser().getId().equals(currentUserId))
                 .findFirst()
                 .map(r -> r.getStatus().name())
                 .orElse(null);
 
-        // Katılımcı Listesi
+        // Participant list
         List<ParticipantDto> participants = allRsvps.stream()
                 .filter(r -> r.getStatus() == RsvpStatus.YES)
                 .map(r -> new ParticipantDto(
@@ -159,10 +157,10 @@ public class EventService {
                 .limit(10)
                 .toList();
 
-        return EventDto.from(e, myStatus, participants);
+        return EventDto.from(e, myStatus, participants, englishMovie(e));
     }
 
-    /** RSVP upsert */
+    /** Creates or updates an RSVP. */
     @Transactional
     public void rsvp(Long eventId, Long userId, RsvpReq req) {
         WatchEvent e = events.findById(eventId).orElseThrow(() -> new IllegalArgumentException(getMsg("event.not.found")));
@@ -181,7 +179,7 @@ public class EventService {
         rsvps.save(r);
     }
 
-    /** ICS üretimi */
+    /** Generates an ICS calendar file. */
     @Transactional
     public String ics(Long eventId) {
         WatchEvent e = events.findById(eventId).orElseThrow(() -> new IllegalArgumentException(getMsg("event.not.found")));
@@ -192,7 +190,7 @@ public class EventService {
         return buildIcs(e);
     }
 
-    /** Grup Etkinlik Listesi */
+    /** Lists group events. */
     public java.util.List<EventDto> listByGroup(Long groupId, Long currentUserId) {
         ensureMember(groupId, currentUserId);
 
@@ -222,12 +220,16 @@ public class EventService {
                             .limit(5)
                             .toList();
 
-                    return EventDto.from(e, myStatus, participants);
+                    return EventDto.from(e, myStatus, participants, englishMovie(e));
                 })
                 .toList();
     }
 
     /* ------------ helpers ------------ */
+
+    private MovieService.MovieDto englishMovie(WatchEvent event) {
+        return event.getMovie() == null ? null : movieService.byId(event.getMovie().getTmdbId());
+    }
 
     private static String generateUidIfAbsent(String current) {
         return (current != null && !current.isBlank()) ? current : ("cinenight-" + UUID.randomUUID());

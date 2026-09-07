@@ -27,7 +27,7 @@ export default function GroupsPage() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">
-            {/* Üst Başlık ve Buton */}
+            {/* Header and action */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-white">{t('groups.my_groups.title')}</h1>
@@ -42,7 +42,7 @@ export default function GroupsPage() {
                 </button>
             </div>
 
-            {/* Yükleniyor */}
+            {/* Loading */}
             {loading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[1, 2, 3].map(i => (
@@ -51,7 +51,7 @@ export default function GroupsPage() {
                 </div>
             )}
 
-            {/* Boş Durum */}
+            {/* Empty state */}
             {!loading && groups.length === 0 && (
                 <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-700 bg-gray-900/30 py-20 text-center">
                     <div className="rounded-full bg-gray-800 p-4 mb-4">
@@ -70,7 +70,7 @@ export default function GroupsPage() {
                 </div>
             )}
 
-            {/* Grup Listesi */}
+            {/* Group list */}
             {!loading && groups.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     {groups.map(group => (

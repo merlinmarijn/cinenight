@@ -26,14 +26,14 @@ export default function ExplorePage() {
     const handleJoin = async (group: GroupDto) => {
         setJoiningId(group.id);
 
-        // 1. Kullanıcı bilgisini al (Giriş yapmış mı?)
+        // Check whether the user is signed in
         const userRes = await me();
         if (!userRes.ok) {
             navigate(`/login?redirect=/explore`);
             return;
         }
 
-        // 2. Katılma isteği at
+        // Send the join request
         const res = await joinGroup(group.id);
 
         if (res.ok) {
@@ -44,14 +44,14 @@ export default function ExplorePage() {
         }
     };
 
-    // Açıklama metnini analiz et
+    // Parse the description text
     const parseDescription = (desc: string = "") => {
         const lines = desc.split('\n');
-        // Eğer bizim modal ile oluşturulmuş formatlı bir metinse emoji içerir
+        // Descriptions created by the legacy modal contain emoji markers
         const isFormatted = desc.includes('🌐') || desc.includes('📍');
 
         if (!isFormatted) {
-            return { type: 'GENEL', text: desc }; // Düz metin modu
+            return { type: 'GENERAL', text: desc };
         }
 
         return {
@@ -77,11 +77,11 @@ export default function ExplorePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {groups.map(g => {
                         const info = parseDescription(g.description);
-                        const isGeneral = info.type === 'GENEL';
+                        const isGeneral = info.type === 'GENERAL';
 
                         return (
                             <div key={g.id} className="group relative flex flex-col rounded-2xl border border-white/10 bg-gray-900/60 p-6 hover:bg-gray-900 transition-all hover:border-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/10">
-                                {/* Üst Etiketler */}
+                                {/* Header labels */}
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                         <Globe className="h-6 w-6" />
@@ -93,16 +93,16 @@ export default function ExplorePage() {
 
                                 <h3 className="text-xl font-bold text-white mb-3">{g.name}</h3>
 
-                                {/* Bilgi Satırları */}
+                                {/* Information rows */}
                                 <div className="space-y-2 mb-6 text-sm text-gray-400">
                                     {isGeneral ? (
-                                        // Düz Metin Modu (Info İkonu ile)
+                                        // Plain-text mode
                                         <div className="flex items-start gap-2">
                                             <Info className="h-4 w-4 mt-0.5 text-gray-500 shrink-0" />
                                             <p className="line-clamp-3 leading-relaxed">{info.text || t('groups.common.no_description')}</p>
                                         </div>
                                     ) : (
-                                        // Formatlı Mod (Özel İkonlar)
+                                        // Structured mode
                                         <>
                                             {info.type && (
                                                 <div className="flex items-center gap-2">
@@ -118,7 +118,7 @@ export default function ExplorePage() {
                                             )}
                                             {info.note && (
                                                 <p className="text-xs text-gray-500 line-clamp-2 mt-2 italic border-t border-white/5 pt-2">
-                                                    "{info.note.replace('📝 Not: ', '')}"
+                                                    "{info.note.replace(/^📝 (?:Note|Not): /, '')}"
                                                 </p>
                                             )}
                                         </>

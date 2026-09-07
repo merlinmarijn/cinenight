@@ -55,7 +55,7 @@ export default function CreateGroupModal({ onClose, onSuccess }: Props) {
                     {error && <div className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">{error}</div>}
 
                     <div className="space-y-5">
-                        {/* Grup Adı */}
+                        {/* Group name */}
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1.5">{t('modals.create_group.name_label')}</label>
                             <input
@@ -68,7 +68,7 @@ export default function CreateGroupModal({ onClose, onSuccess }: Props) {
                             />
                         </div>
 
-                        {/* Açıklama Alanı */}
+                        {/* Description */}
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-1.5 flex items-center gap-2">
                                 <AlignLeft className="h-4 w-4 text-gray-500" />
@@ -83,7 +83,7 @@ export default function CreateGroupModal({ onClose, onSuccess }: Props) {
                             />
                         </div>
 
-                        {/* Gizlilik Seçimi */}
+                        {/* Privacy selection */}
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">{t('modals.create_group.privacy_label')}</label>
                             <div className="grid grid-cols-2 gap-3">

@@ -7,6 +7,14 @@ import { useTranslation } from "react-i18next";
 
 const IMG_BASE = "https://image.tmdb.org/t/p";
 
+function languageName(code: string) {
+    try {
+        return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) ?? code.toUpperCase();
+    } catch {
+        return code.toUpperCase();
+    }
+}
+
 type Props = {
     tmdbId: number;
     onClose: () => void;
@@ -15,10 +23,10 @@ type Props = {
 type Mode = 'DETAIL' | 'SELECT_GROUP' | 'SUCCESS' | 'EXISTS';
 
 export default function MovieDetailModal({ tmdbId, onClose }: Props) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const [mode, setMode] = useState<Mode>('DETAIL');
 
-    // Veriler
+    // Data
     const [movie, setMovie] = useState<MovieDto | null>(null);
     const [groups, setGroups] = useState<GroupDto[]>([]);
 
@@ -27,16 +35,13 @@ export default function MovieDetailModal({ tmdbId, onClose }: Props) {
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
 
-    // 1. Filmi Yükle
+    // Load the movie
     useEffect(() => {
         async function fetchDetails() {
             setLoading(true);
             setError(null);
 
-            // Backend'e seçili dili gönderiyoruz
-            const currentLang = i18n.language || 'tr-TR';
-
-            const res = await MoviesApi.byId(tmdbId, currentLang);
+            const res = await MoviesApi.byId(tmdbId);
 
             if (res.ok) {
                 setMovie(res.data);
@@ -46,9 +51,9 @@ export default function MovieDetailModal({ tmdbId, onClose }: Props) {
             setLoading(false);
         }
         fetchDetails();
-    }, [tmdbId, t, i18n.language]); // Dil değiştiğinde tekrar çalışır
+    }, [tmdbId, t]);
 
-    // 2. Grupları Yükle
+    // Load groups
     const handleStartSuggest = async () => {
         setActionLoading(true);
         const res = await fetchMyGroups();
@@ -62,7 +67,7 @@ export default function MovieDetailModal({ tmdbId, onClose }: Props) {
         }
     };
 
-    // 3. Grup Seçilince Backend'e Gönder
+    // Send the selected group to the backend
     const handleSelectGroup = async (groupId: number) => {
         if (!movie) return;
         setActionLoading(true);
@@ -129,14 +134,14 @@ export default function MovieDetailModal({ tmdbId, onClose }: Props) {
 
                         <div className="flex-1 p-6 flex flex-col bg-gray-900">
 
-                            {/* MOD 1: Detay */}
+                            {/* Movie details */}
                             {mode === 'DETAIL' && (
                                 <>
                                     <div className="flex-1 overflow-y-auto">
                                         <h2 className="text-2xl font-bold text-white mb-2">{movie.title}</h2>
                                         <div className="flex flex-wrap gap-3 text-sm text-gray-400 mb-4">
                                             {movie.releaseYear && <span>📅 {movie.releaseYear}</span>}
-                                            {movie.language && <span className="uppercase">🗣️ {movie.language}</span>}
+                                            {movie.language && <span>🗣️ {languageName(movie.language)}</span>}
                                         </div>
                                         <p className="text-gray-300 text-sm leading-relaxed">
                                             {movie.description || t('movie.no_description')}
@@ -156,7 +161,7 @@ export default function MovieDetailModal({ tmdbId, onClose }: Props) {
                                 </>
                             )}
 
-                            {/* MOD 2: Grup Seçimi */}
+                            {/* Group selection */}
                             {mode === 'SELECT_GROUP' && (
                                 <div className="flex flex-col h-full">
                                     <div className="mb-4">
@@ -208,7 +213,7 @@ export default function MovieDetailModal({ tmdbId, onClose }: Props) {
                                 </div>
                             )}
 
-                            {/* MOD 3: Başarılı */}
+                            {/* Success */}
                             {mode === 'SUCCESS' && (
                                 <div className="flex flex-col items-center justify-center h-full text-center animate-in fade-in zoom-in duration-300">
                                     <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">

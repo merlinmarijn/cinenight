@@ -30,7 +30,7 @@ public class PollService {
             return new PollDto(p.getId(), p.getGroup().getId(), p.getTitle(), Boolean.TRUE.equals(p.getIsOpen()), p.getPublicToken());
         }
     }
-    public record AddOptionReq(@NotNull Long pollId, @NotNull Integer tmdbId, String label, String language) {}
+    public record AddOptionReq(@NotNull Long pollId, @NotNull Integer tmdbId, String label) {}
     public record VoteReq(@NotNull Long optionId) {}
     public record OptionResult(Long optionId, Integer tmdbId, String title, long votes) {}
     public record SuggestMovieReq(@NotNull Long groupId, @NotNull Integer tmdbId, String title) {}
@@ -46,7 +46,7 @@ public class PollService {
     private final MovieRepository movies;
     private final MovieService movieService;
     private final UserRepository users;
-    private final MessageSource messageSource; // EKLENDİ
+    private final MessageSource messageSource;
 
     public PollService(GroupRepository groups, GroupMemberRepository members,
                        PollRepository polls, PollOptionRepository options,
@@ -98,13 +98,12 @@ public class PollService {
         ensureMember(p.getGroup().getId(), userId);
         if (!Boolean.TRUE.equals(p.getIsOpen())) throw new IllegalArgumentException(getMsg("poll.closed")); 
 
-        String lang = (req.language() == null || req.language().isBlank()) ? "tr-TR" : req.language();
-        movieService.byId(req.tmdbId(), lang);
+        movieService.byId(req.tmdbId());
         Movie m = movies.findByTmdbId(req.tmdbId()).orElseThrow();
 
-        // Kontrol: Zaten var mı?
+        // Skip options that are already in the poll.
         if (options.existsByPollIdAndMovieId(p.getId(), m.getId())) {
-            return; // Zaten ekli, hata verme, başarıyla çık.
+            return;
         }
 
         PollOption po = new PollOption();
@@ -143,11 +142,14 @@ public class PollService {
         Poll p = polls.findById(pollId).orElseThrow(() -> new IllegalArgumentException(getMsg("poll.not.found"))); 
         return options.findAll().stream()
                 .filter(o -> o.getPoll().getId().equals(p.getId()))
-                .map(o -> new OptionResult(
+                .map(o -> {
+                    var movie = movieService.byId(o.getMovie().getTmdbId());
+                    return new OptionResult(
                         o.getId(),
                         o.getMovie().getTmdbId(),
-                        o.getMovie().getTitle(),
-                        votes.countByOptionId(o.getId())))
+                        movie.title(),
+                        votes.countByOptionId(o.getId()));
+                })
                 .sorted((a,b) -> Long.compare(b.votes(), a.votes()))
                 .toList();
     }
@@ -183,7 +185,7 @@ public class PollService {
                     return polls.save(newPoll);
                 });
 
-        movieService.byId(req.tmdbId(), "tr-TR");
+        movieService.byId(req.tmdbId());
         Movie m = movies.findByTmdbId(req.tmdbId()).orElseThrow();
 
         if (options.existsByPollIdAndMovieId(poll.getId(), m.getId())) {
@@ -219,13 +221,14 @@ public class PollService {
         List<PollOptionDto> optionDtos = pollOptions.stream().map(o -> {
                     long count = votes.countByOptionId(o.getId());
                     boolean isVoted = o.getId().equals(myVotedOptionId);
+                    var movie = movieService.byId(o.getMovie().getTmdbId());
 
                     return new PollOptionDto(
                             o.getId(),
                             o.getMovie().getTmdbId(),
-                            o.getMovie().getTitle(),
-                            o.getMovie().getPosterPath(),
-                            o.getMovie().getReleaseYear(),
+                            movie.title(),
+                            movie.posterPath(),
+                            movie.releaseYear(),
                             o.getAddedBy() != null ? o.getAddedBy().getDisplayName() : getMsg("user.anonymous"),
                             count,
                             isVoted

@@ -44,7 +44,7 @@ public class GroupService {
         this.messageSource = messageSource;
     }
 
-    // Yardımcı: Mesaj çekme
+    // Message lookup helper
     private String getMsg(String key) {
         return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }

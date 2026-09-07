@@ -276,12 +276,12 @@ Directory structure:
     │       │       ├── application.properties
     │       │       ├── application.yml
     │       │       ├── messages.properties
-    │       │       ├── messages_en.properties
-    │       │       ├── messages_tr.properties
     │       │       ├── db/
     │       │       │   └── migration/
     │       │       │       ├── V10__verification_token.sql
     │       │       │       ├── V11__add_pending_email.sql
+    │       │       │       ├── V12__guest_accounts.sql
+    │       │       │       ├── V13__translate_system_content_to_english.sql
     │       │       │       ├── V1__init.sql
     │       │       │       ├── V2__fix_event_invites_token.sql
     │       │       │       ├── V3__fix_movies_language_type.sql
@@ -313,9 +313,7 @@ Directory structure:
     │   ├── vite.config.ts
     │   ├── public/
     │   │   └── locales/
-    │   │       ├── en/
-    │   │       │   └── translation.json
-    │   │       └── tr/
+    │   │       └── en/
     │   │           └── translation.json
     │   └── src/
     │       ├── i18n.ts
@@ -336,7 +334,6 @@ Directory structure:
     │       ├── components/
     │       │   ├── AuthLayout.tsx
     │       │   ├── ConfirmModal.tsx
-    │       │   ├── LanguageSwitcher.tsx
     │       │   ├── MovieCard.tsx
     │       │   ├── MovieDetailModal.tsx
     │       │   ├── ProtectedRoute.tsx

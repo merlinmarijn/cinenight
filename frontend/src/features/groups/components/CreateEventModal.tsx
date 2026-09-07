@@ -3,7 +3,7 @@ import { X, Loader2, MapPin, Clock, Film } from 'lucide-react';
 import { createEvent } from '@/api/events';
 import { closePoll } from '@/api/polls';
 import { DayPicker } from 'react-day-picker';
-import { tr, enUS } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import 'react-day-picker/style.css';
 
@@ -19,8 +19,7 @@ type Props = {
 
 export default function CreateEventModal({ groupId, pollId, movies, onClose, onSuccess }: Props) {
     const [selectedMovieId, setSelectedMovieId] = useState<number>(movies[0].tmdbId);
-    const { t, i18n } = useTranslation();
-    const dateLocale = i18n.language === 'en' ? enUS : tr;
+    const { t } = useTranslation();
 
     const [selectedDate, setSelectedDate] = useState<Date>();
     const [time, setTime] = useState('21:00');
@@ -39,7 +38,7 @@ export default function CreateEventModal({ groupId, pollId, movies, onClose, onS
 
         const res = await createEvent({
             groupId,
-            title: `${selectedMovie.title} - İzleme Gecesi`, // Bu kısmı olduğu gibi bıraktım, dilerseniz burayı da çevirebiliriz ama film adı içerdiği için böyle kalması mantıklı.
+            title: `${selectedMovie.title} - Movie Night`,
             tmdbId: selectedMovie.tmdbId,
             startTime: startDate.toISOString(),
             locationText: location || 'Discord / Online'
@@ -90,13 +89,13 @@ export default function CreateEventModal({ groupId, pollId, movies, onClose, onS
                         </div>
                     )}
 
-                    {/* TAKVİM */}
+                    {/* Calendar */}
                     <div className="flex justify-center rounded-xl bg-gray-800/50 border border-white/5 p-2">
                         <DayPicker
                             mode="single"
                             selected={selectedDate}
                             onSelect={setSelectedDate}
-                            locale={dateLocale}
+                            locale={enUS}
                             disabled={{ before: new Date() }}
                             styles={{ caption: { color: 'white' }, head_cell: { color: '#9ca3af' }, day: { color: 'white' }, nav_button: { color: 'white' } }}
                         />

@@ -74,7 +74,7 @@ export default function HomePage() {
                         loading={h.loadingKey === "cinenight"}
                         error={h.errKey === "cinenight"}
                         onRetry={() => h.loadTopCine(h.limitTop)}
-                        emptyText="Henüz etkileşim toplayan film yok. Bir iki oy/izlenme ile burası dolacak." // Bu metin MoviesGrid içinde t() ile halledilecek
+                        emptyText="No movies have received activity yet. A few votes or views will fill this section."
                         onMovieClick={handleMovieClick}
                     />
                 )}

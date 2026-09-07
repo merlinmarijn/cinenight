@@ -16,16 +16,14 @@ public class HomeController {
 
     @GetMapping("/trending")
     public ApiResponse<TmdbMoviePage> trending(
-            @RequestParam(defaultValue = "tr-TR") String lang,
             @RequestParam(defaultValue = "1") int page) {
-        return ApiResponse.ok(service.trending(lang, page));
+        return ApiResponse.ok(service.trending(page));
     }
 
     @GetMapping("/top-rated")
     public ApiResponse<TmdbMoviePage> topRated(
-            @RequestParam(defaultValue = "tr-TR") String lang,
             @RequestParam(defaultValue = "1") int page) {
-        return ApiResponse.ok(service.topRated(lang, page));
+        return ApiResponse.ok(service.topRated(page));
     }
 
     @GetMapping("/top-movies")

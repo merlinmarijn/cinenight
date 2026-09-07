@@ -39,7 +39,7 @@ export default function JoinGroupPage() {
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-2">{t('groups.join.error_title')}</h2>
                 <p className="text-gray-400 mb-8 max-w-md mx-auto leading-relaxed">
-                    {(errorMsg === "Link geçersiz veya süresi dolmuş." || errorMsg === "LINK_INVALID")
+                    {(errorMsg === t('groups.join.error_invalid_link') || errorMsg === "LINK_INVALID")
                         ? t('groups.join.error_invalid_desc')
                         : errorMsg}
                 </p>
