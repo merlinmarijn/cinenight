@@ -56,3 +56,7 @@
     color: #e5e7eb;
 }
 
+.admin-select {
+    @apply mt-1.5 w-full rounded-lg border border-white/10 bg-stone-950 px-2 py-2 text-sm normal-case tracking-normal text-white outline-none focus:border-amber-300/50;
+}
+

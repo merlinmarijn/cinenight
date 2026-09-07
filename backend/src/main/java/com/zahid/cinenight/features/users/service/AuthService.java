@@ -34,6 +34,7 @@ public class AuthService {
     private final SecurityContextRepository securityContextRepository;
     private final VerificationTokenRepository verifyTokens;
     private final MessageSource messageSource;
+    private final BootstrapStateRepository bootstrapStates;
 
     @Value("${app.frontend.base-url}")
     private String frontendBaseUrl;
@@ -45,7 +46,8 @@ public class AuthService {
                        AuthenticationManager authenticationManager,
                        SecurityContextRepository securityContextRepository,
                        EmailService emailService,
-                       MessageSource messageSource) {
+                       MessageSource messageSource,
+                       BootstrapStateRepository bootstrapStates) {
         this.users = users;
         this.tokens = tokens;
         this.verifyTokens = verifyTokens;
@@ -54,6 +56,7 @@ public class AuthService {
         this.securityContextRepository = securityContextRepository;
         this.emailService = emailService;
         this.messageSource = messageSource;
+        this.bootstrapStates = bootstrapStates;
     }
 
     private String getMsg(String key) {
@@ -71,7 +74,13 @@ public class AuthService {
             u.setEmail(req.email());
             u.setDisplayName(req.displayName());
             u.setPasswordHash(passwordEncoder.encode(req.password()));
-
+            BootstrapState bootstrap = bootstrapStates.findByIdForUpdate(1)
+                    .orElseThrow(() -> new IllegalStateException("Application bootstrap state is missing."));
+            if (!bootstrap.isAdminClaimed()) {
+                u.setRole(UserRole.ADMIN);
+                bootstrap.setAdminClaimed(true);
+                bootstrapStates.save(bootstrap);
+            }
             u.setStatus(UserStatus.DISABLED);
 
             users.save(u);
@@ -177,7 +186,8 @@ public class AuthService {
         Instant renameAvailableAt = guest && u.getDisplayNameChangedAt() != null
                 ? u.getDisplayNameChangedAt().plus(GuestIdentityService.renameCooldown())
                 : null;
-        return new UserDto(u.getId(), guest ? null : u.getEmail(), u.getDisplayName(), "USER",
-                u.getAccountType().name(), renameAvailableAt);
+        boolean canCreateGroups = u.getRole() != UserRole.USER || u.isCanCreateGroups();
+        return new UserDto(u.getId(), guest ? null : u.getEmail(), u.getDisplayName(), u.getRole().name(),
+                u.getAccountType().name(), canCreateGroups, renameAvailableAt);
     }
 }

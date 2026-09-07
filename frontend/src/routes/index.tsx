@@ -4,6 +4,7 @@ import { me, type UserDto } from '@/api/auth';
 import RootLayout from '@/components/RootLayout';
 import AuthLayout from '@/components/AuthLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminRoute from '@/components/AdminRoute';
 
 import HomePage from '@/features/home/HomePage';
 import LoginPage from '@/features/auth/LoginPage';
@@ -18,6 +19,7 @@ import GroupDetailPage from '@/features/groups/GroupDetailPage';
 import JoinGroupPage from '@/features/groups/JoinGroupPage';
 import ExplorePage from '@/features/groups/ExplorePage';
 import ProfilePage from "@/features/users/ProfilePage";
+import AdminDashboardPage from '@/features/admin/AdminDashboardPage';
 import { useTranslation } from 'react-i18next';
 
 export default function AppRoutes() {
@@ -60,10 +62,13 @@ export default function AppRoutes() {
 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoute user={user} />}>
-                    <Route path="/dashboard" element={<GroupsPage />} />
+                    <Route path="/dashboard" element={<GroupsPage user={user!} />} />
                     <Route path="/profile" element={<ProfilePage user={user!} onUserUpdate={setUser} />} />
                     <Route path="/groups/:groupId" element={<GroupDetailPage />} />
                     <Route path="/join/:token" element={<JoinGroupPage />} />
+                    <Route element={<AdminRoute user={user!} />}>
+                        <Route path="/admin" element={<AdminDashboardPage currentUserId={user!.id} />} />
+                    </Route>
                 </Route>
             </Route>
 

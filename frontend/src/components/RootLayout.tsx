@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { UserDto, logout } from '@/api/auth';
-import { LayoutDashboard, LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface RootLayoutProps {
@@ -53,6 +53,7 @@ export default function RootLayout({ user, onLogout }: RootLayoutProps) {
                                 <Link to="/explore" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
                                     {t('nav.explore')}
                                 </Link>
+                                {user.role === 'ADMIN' ? <Link to="/admin" className={`flex items-center gap-2 text-sm font-medium transition-colors ${pathname === '/admin' ? 'text-amber-300' : 'text-gray-400 hover:text-white'}`}><ShieldCheck className="h-4 w-4" />Admin</Link> : null}
                             </>
                         ) : (
                             <>
@@ -66,6 +67,7 @@ export default function RootLayout({ user, onLogout }: RootLayoutProps) {
                     <div className="flex items-center gap-4">
                         {user ? (
                             <div className="flex items-center gap-4 pl-4 border-l border-white/10">
+                                {user.role === 'ADMIN' ? <Link to="/admin" className="rounded-full p-2 text-amber-300 transition hover:bg-amber-300/10 md:hidden" title="Admin dashboard" aria-label="Admin dashboard"><ShieldCheck className="h-5 w-5" /></Link> : null}
                                 <Link
                                     to="/profile"
                                     className="hidden text-right sm:block hover:opacity-80 transition cursor-pointer"

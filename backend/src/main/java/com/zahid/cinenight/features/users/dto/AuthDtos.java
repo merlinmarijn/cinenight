@@ -24,6 +24,6 @@ public class AuthDtos {
             @NotBlank @Size(min=3,max=24) String username,
             @NotBlank @Size(min=6,max=64) String password) {}
     public record UserDto(Long id, String email, String displayName, String role,
-                          String accountType, Instant renameAvailableAt) {}
+                          String accountType, boolean canCreateGroups, Instant renameAvailableAt) {}
     public record GuestSessionDto(UserDto user, boolean existingAccount) {}
 }

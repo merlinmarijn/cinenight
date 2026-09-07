@@ -22,7 +22,7 @@ public class DbUserDetailsService implements UserDetailsService {
                 .withUsername(u.getEmail())
                 .password(u.getPasswordHash())
                 .disabled(u.getStatus() == com.zahid.cinenight.features.users.domain.UserStatus.DISABLED)
-                .roles("USER")
+                .roles(u.getRole().name())
                 .build();
     }
 }

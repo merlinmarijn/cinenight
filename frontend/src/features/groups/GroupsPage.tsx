@@ -4,8 +4,9 @@ import { Plus, Users, Shield, User } from 'lucide-react';
 import CreateGroupModal from './components/CreateGroupModal';
 import {useNavigate} from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import type { UserDto } from '@/api/auth';
 
-export default function GroupsPage() {
+export default function GroupsPage({ user }: { user: UserDto }) {
     const navigate = useNavigate();
     const [groups, setGroups] = useState<GroupDto[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,13 +34,7 @@ export default function GroupsPage() {
                     <h1 className="text-3xl font-bold text-white">{t('groups.my_groups.title')}</h1>
                     <p className="text-gray-400 mt-1">{t('groups.my_groups.subtitle')}</p>
                 </div>
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"
-                >
-                    <Plus className="h-5 w-5" />
-                    {t('groups.my_groups.create_button')}
-                </button>
+                {user.canCreateGroups ? <button onClick={() => setIsCreateModalOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"><Plus className="h-5 w-5" />{t('groups.my_groups.create_button')}</button> : <div className="rounded-xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm text-amber-200">An admin has disabled group creation for this account.</div>}
             </div>
 
             {/* Loading */}
@@ -61,12 +56,12 @@ export default function GroupsPage() {
                     <p className="mt-2 text-gray-400 max-w-md">
                         {t('groups.my_groups.empty_desc')}
                     </p>
-                    <button
+                    {user.canCreateGroups ? <button
                         onClick={() => setIsCreateModalOpen(true)}
                         className="mt-6 text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-4"
                     >
                         {t('groups.my_groups.create_link')}
-                    </button>
+                    </button> : null}
                 </div>
             )}
 
@@ -104,7 +99,7 @@ export default function GroupsPage() {
             )}
 
             {/* Modal */}
-            {isCreateModalOpen && (
+            {isCreateModalOpen && user.canCreateGroups && (
                 <CreateGroupModal
                     onClose={() => setIsCreateModalOpen(false)}
                     onSuccess={loadGroups}

@@ -25,6 +25,7 @@ class GuestIdentityServiceTest {
     @Mock UserRepository users;
     @Mock GuestDeviceRepository devices;
     @Mock SecurityContextRepository contexts;
+    @Mock BootstrapStateRepository bootstrapStates;
     BCryptPasswordEncoder encoder;
     GuestIdentityService service;
 
@@ -32,11 +33,18 @@ class GuestIdentityServiceTest {
     void setUp() {
         encoder = new BCryptPasswordEncoder(4);
         service = new GuestIdentityService(users, devices, encoder, contexts,
-                "test-pepper", 3, false);
+                "test-pepper", 3, false, bootstrapStates);
+        BootstrapState state = new BootstrapState();
+        state.setId(1);
+        state.setAdminClaimed(true);
+        lenient().when(bootstrapStates.findByIdForUpdate(1)).thenReturn(Optional.of(state));
     }
 
     @Test
     void createsGuestWithChosenPasswordHashAndDeviceCookie() {
+        BootstrapState unclaimed = new BootstrapState();
+        unclaimed.setId(1);
+        when(bootstrapStates.findByIdForUpdate(1)).thenReturn(Optional.of(unclaimed));
         when(devices.findByDeviceHash(anyString())).thenReturn(Optional.empty());
         when(users.existsByUsernameIgnoreCase("FilmFan")).thenReturn(false);
         when(users.countByAccountTypeAndGuestSignupIpHashAndCreatedAtAfter(eq(AccountType.GUEST), anyString(), any()))
@@ -55,6 +63,7 @@ class GuestIdentityServiceTest {
         ArgumentCaptor<User> guest = ArgumentCaptor.forClass(User.class);
         verify(users).saveAndFlush(guest.capture());
         assertThat(guest.getValue().getAccountType()).isEqualTo(AccountType.GUEST);
+        assertThat(guest.getValue().getRole()).isEqualTo(UserRole.ADMIN);
         assertThat(guest.getValue().getGuestSignupIpHash()).doesNotContain("203.0.113.8");
         assertThat(encoder.matches("secret-movie", guest.getValue().getPasswordHash())).isTrue();
         assertThat(guest.getValue().getGuestCodeHash()).isNull();

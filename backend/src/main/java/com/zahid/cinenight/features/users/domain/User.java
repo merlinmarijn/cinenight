@@ -36,6 +36,13 @@ public class User {
     @Column(nullable = false, length = 16)
     private UserStatus status = UserStatus.ACTIVE;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserRole role = UserRole.USER;
+
+    @Column(name = "can_create_groups", nullable = false)
+    private boolean canCreateGroups = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -51,6 +51,10 @@ public class GroupService {
 
     @Transactional
     public GroupDto create(CreateGroupReq req, Long ownerUserId) {
+        User owner = users.findById(ownerUserId).orElseThrow();
+        if (owner.getRole() == com.zahid.cinenight.features.users.domain.UserRole.USER && !owner.isCanCreateGroups()) {
+            throw new org.springframework.security.access.AccessDeniedException("This account is not allowed to create groups.");
+        }
         Group g = new Group();
         g.setName(req.name());
         g.setDescription(req.description());
@@ -61,13 +65,13 @@ public class GroupService {
             else g.setVisibility(GroupVisibility.LINK);
         } catch (Exception e) { g.setVisibility(GroupVisibility.LINK); }
 
-        g.setCreatedBy(users.findById(ownerUserId).orElse(null));
+        g.setCreatedBy(owner);
         groups.save(g);
 
         GroupMember m = new GroupMember();
         m.setId(new GroupMemberId(g.getId(), ownerUserId));
         m.setGroup(g);
-        m.setUser(users.findById(ownerUserId).orElseThrow());
+        m.setUser(owner);
         m.setRole(GroupRole.OWNER);
         members.save(m);
 

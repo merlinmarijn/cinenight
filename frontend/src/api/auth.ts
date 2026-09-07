@@ -4,8 +4,9 @@ export type UserDto = {
     id: number;
     email: string | null;
     displayName: string;
-    role: 'USER' | 'ADMIN' | string;
+    role: 'USER' | 'VIP' | 'ADMIN';
     accountType: 'REGISTERED' | 'GUEST';
+    canCreateGroups: boolean;
     renameAvailableAt: string | null;
 };
 

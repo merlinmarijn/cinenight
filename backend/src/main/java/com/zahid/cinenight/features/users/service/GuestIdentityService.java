@@ -57,6 +57,7 @@ public class GuestIdentityService {
     private final String identityPepper;
     private final int maxAccountsPerIp;
     private final boolean trustForwardedHeaders;
+    private final BootstrapStateRepository bootstrapStates;
 
     public GuestIdentityService(UserRepository users,
                                 GuestDeviceRepository devices,
@@ -64,7 +65,8 @@ public class GuestIdentityService {
                                 SecurityContextRepository securityContextRepository,
                                 @Value("${app.guest.identity-pepper:cinenight-local-dev-only}") String identityPepper,
                                 @Value("${app.guest.max-accounts-per-ip-per-24h:3}") int maxAccountsPerIp,
-                                @Value("${app.guest.trust-forwarded-headers:false}") boolean trustForwardedHeaders) {
+                                @Value("${app.guest.trust-forwarded-headers:false}") boolean trustForwardedHeaders,
+                                BootstrapStateRepository bootstrapStates) {
         this.users = users;
         this.devices = devices;
         this.passwordEncoder = passwordEncoder;
@@ -73,6 +75,7 @@ public class GuestIdentityService {
         this.identityPepper = identityPepper;
         this.maxAccountsPerIp = maxAccountsPerIp;
         this.trustForwardedHeaders = trustForwardedHeaders;
+        this.bootstrapStates = bootstrapStates;
     }
 
     @Transactional
@@ -111,6 +114,13 @@ public class GuestIdentityService {
         guest.setGuestSignupIpHash(ipHash);
         guest.setDisplayNameChangedAt(Instant.now());
         guest.setStatus(UserStatus.ACTIVE);
+        BootstrapState bootstrap = bootstrapStates.findByIdForUpdate(1)
+                .orElseThrow(() -> new IllegalStateException("Application bootstrap state is missing."));
+        if (!bootstrap.isAdminClaimed()) {
+            guest.setRole(UserRole.ADMIN);
+            bootstrap.setAdminClaimed(true);
+            bootstrapStates.save(bootstrap);
+        }
         users.saveAndFlush(guest);
 
         GuestDevice link = new GuestDevice();
@@ -195,7 +205,7 @@ public class GuestIdentityService {
         UserDetails principal = org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPasswordHash())
-                .roles("USER")
+                .roles(user.getRole().name())
                 .build();
         var authentication = UsernamePasswordAuthenticationToken.authenticated(
                 principal, null, principal.getAuthorities());
