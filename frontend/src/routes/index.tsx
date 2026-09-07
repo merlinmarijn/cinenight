@@ -62,12 +62,12 @@ export default function AppRoutes() {
 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoute user={user} />}>
-                    <Route path="/dashboard" element={<GroupsPage user={user!} />} />
-                    <Route path="/profile" element={<ProfilePage user={user!} onUserUpdate={setUser} />} />
+                    <Route path="/dashboard" element={user ? <GroupsPage user={user} /> : null} />
+                    <Route path="/profile" element={user ? <ProfilePage user={user} onUserUpdate={setUser} /> : null} />
                     <Route path="/groups/:groupId" element={<GroupDetailPage />} />
                     <Route path="/join/:token" element={<JoinGroupPage />} />
-                    <Route element={<AdminRoute user={user!} />}>
-                        <Route path="/admin" element={<AdminDashboardPage currentUserId={user!.id} />} />
+                    <Route element={user ? <AdminRoute user={user} /> : null}>
+                        <Route path="/admin" element={user ? <AdminDashboardPage currentUserId={user.id} /> : null} />
                     </Route>
                 </Route>
             </Route>
