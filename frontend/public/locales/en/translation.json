@@ -33,7 +33,7 @@
         "eyebrow": "No email required",
         "title": "Join as a guest",
         "subtitle": "Choose a name and password. This browser will remember you.",
-        "tabs": { "create": "New guest", "returning": "Sign in" },
+        "tabs": { "create": "New guest", "returning": "Returning guest" },
         "username": "Guest name",
         "username_placeholder": "movie_buff",
         "username_hint": "3–24 letters, numbers, or underscores.",
