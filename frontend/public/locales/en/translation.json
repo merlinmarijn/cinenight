@@ -168,6 +168,7 @@
       "resolve_tie": "Resolve Tie & Plan",
       "end_and_plan": "End Poll & Plan",
       "voted": "Voted",
+      "unvote": "Unvote",
       "vote": "Vote"
     },
     "join": {

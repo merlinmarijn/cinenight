@@ -307,12 +307,12 @@ export default function TryDemoPage() {
                                         onClick={() => handleVote(opt.id)}
                                         className={`mt-auto w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${
                                             opt.isVotedByMe
-                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 cursor-default'
+                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 hover:bg-indigo-700'
                                                 : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5 hover:border-white/20'
                                         }`}
                                     >
                                         {opt.isVotedByMe ? (
-                                            <><Check className="h-3.5 w-3.5" /> {t('groups.poll.voted')}</>
+                                            <><X className="h-3.5 w-3.5" /> {t('groups.poll.unvote')}</>
                                         ) : (
                                             t('groups.poll.vote')
                                         )}

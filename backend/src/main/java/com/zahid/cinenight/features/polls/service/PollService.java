@@ -126,8 +126,12 @@ public class PollService {
         var existing = votes.findByPollIdAndUserId(pollId, userId);
         if (existing.isPresent()) {
             var v = existing.get();
-            v.setOption(opt);
-            votes.save(v);
+            if (v.getOption().getId().equals(opt.getId())) {
+                votes.delete(v);
+            } else {
+                v.setOption(opt);
+                votes.save(v);
+            }
         } else {
             Vote v = new Vote();
             v.setPoll(p);
