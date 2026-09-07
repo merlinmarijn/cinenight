@@ -4,7 +4,6 @@ import com.zahid.cinenight.common.api.ApiResponse;
 import com.zahid.cinenight.features.users.dto.AuthDtos.*;
 import com.zahid.cinenight.features.users.service.AuthService;
 import com.zahid.cinenight.features.users.service.GuestIdentityService;
-import com.zahid.cinenight.features.users.domain.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,12 +16,10 @@ import jakarta.validation.Valid;
 public class AuthController {
     private final AuthService auth;
     private final GuestIdentityService guests;
-    private final UserRepository users;
 
-    public AuthController(AuthService auth, GuestIdentityService guests, UserRepository users) {
+    public AuthController(AuthService auth, GuestIdentityService guests) {
         this.auth = auth;
         this.guests = guests;
-        this.users = users;
     }
 
     @PostMapping("/register")
@@ -76,13 +73,6 @@ public class AuthController {
                                                     HttpServletRequest request,
                                                     HttpServletResponse response) {
         return ApiResponse.ok(guests.login(req, request, response));
-    }
-
-    @PostMapping("/guest/code")
-    public ApiResponse<String> regenerateGuestCode(@AuthenticationPrincipal UserDetails principal) {
-        if (principal == null) throw new IllegalArgumentException("Login required.");
-        var user = users.findByEmail(principal.getUsername()).orElseThrow();
-        return ApiResponse.ok(guests.regenerateCode(user));
     }
 
     @PostMapping("/verify")

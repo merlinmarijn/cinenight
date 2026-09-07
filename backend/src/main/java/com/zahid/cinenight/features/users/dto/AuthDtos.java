@@ -18,11 +18,12 @@ public class AuthDtos {
     public record GuestRegisterRequest(
             @NotBlank @Size(min=3,max=24)
             @Pattern(regexp = "^[A-Za-z0-9_]+$", message = "Use only letters, numbers, and underscores.")
-            String username) {}
+            String username,
+            @NotBlank @Size(min=6,max=64) String password) {}
     public record GuestLoginRequest(
             @NotBlank @Size(min=3,max=24) String username,
-            @NotBlank @Size(min=8,max=12) String code) {}
+            @NotBlank @Size(min=6,max=64) String password) {}
     public record UserDto(Long id, String email, String displayName, String role,
                           String accountType, Instant renameAvailableAt) {}
-    public record GuestSessionDto(UserDto user, String recoveryCode, boolean existingAccount) {}
+    public record GuestSessionDto(UserDto user, boolean existingAccount) {}
 }

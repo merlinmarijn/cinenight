@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 public class GuestIdentityService {
     private static final String DEVICE_COOKIE = "CINENIGHT_GUEST_DEVICE";
     private static final String NO_RESUME_COOKIE = "CINENIGHT_GUEST_NO_RESUME";
-    private static final String CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Duration RENAME_COOLDOWN = Duration.ofHours(24);
     private static final Duration LOGIN_WINDOW = Duration.ofMinutes(15);
@@ -54,7 +53,7 @@ public class GuestIdentityService {
             .maximumSize(10_000)
             .expireAfterAccess(15, TimeUnit.MINUTES)
             .build();
-    private final String dummyCodeHash;
+    private final String dummyPasswordHash;
     private final String identityPepper;
     private final int maxAccountsPerIp;
     private final boolean trustForwardedHeaders;
@@ -69,7 +68,7 @@ public class GuestIdentityService {
         this.users = users;
         this.devices = devices;
         this.passwordEncoder = passwordEncoder;
-        this.dummyCodeHash = passwordEncoder.encode("invalid-guest-code");
+        this.dummyPasswordHash = passwordEncoder.encode("invalid-guest-password");
         this.securityContextRepository = securityContextRepository;
         this.identityPepper = identityPepper;
         this.maxAccountsPerIp = maxAccountsPerIp;
@@ -88,7 +87,7 @@ public class GuestIdentityService {
             User existing = existingDevice.get().getUser();
             touch(existingDevice.get(), ipHash);
             signIn(existing, request, response);
-            return new GuestSessionDto(AuthService.toDto(existing), null, true);
+            return new GuestSessionDto(AuthService.toDto(existing), true);
         }
 
         String username = normalizeUsername(req.username());
@@ -100,17 +99,15 @@ public class GuestIdentityService {
         long recentFromIp = users.countByAccountTypeAndGuestSignupIpHashAndCreatedAtAfter(
                 AccountType.GUEST, ipHash, Instant.now().minus(Duration.ofHours(24)));
         if (recentFromIp >= maxAccountsPerIp) {
-            throw new GuestRateLimitException("Too many guest accounts were created from this network. Try again later or sign in with an existing guest code.");
+            throw new GuestRateLimitException("Too many guest accounts were created from this network. Try again later or sign in to an existing guest account.");
         }
 
-        String plainCode = generateCode();
         User guest = new User();
         guest.setEmail("guest-" + UUID.randomUUID() + "@guest.cinenight.invalid");
-        guest.setPasswordHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+        guest.setPasswordHash(passwordEncoder.encode(req.password()));
         guest.setDisplayName(username);
         guest.setUsername(username);
         guest.setAccountType(AccountType.GUEST);
-        guest.setGuestCodeHash(passwordEncoder.encode(compactCode(plainCode)));
         guest.setGuestSignupIpHash(ipHash);
         guest.setDisplayNameChangedAt(Instant.now());
         guest.setStatus(UserStatus.ACTIVE);
@@ -124,7 +121,7 @@ public class GuestIdentityService {
         devices.save(link);
 
         signIn(guest, request, response);
-        return new GuestSessionDto(AuthService.toDto(guest), formatCode(plainCode), false);
+        return new GuestSessionDto(AuthService.toDto(guest), false);
     }
 
     @Transactional(noRollbackFor = IllegalArgumentException.class)
@@ -137,11 +134,19 @@ public class GuestIdentityService {
         enforceLoginThrottle(throttleKey);
 
         User guest = users.findByUsernameIgnoreCaseAndAccountType(username, AccountType.GUEST).orElse(null);
-        String suppliedCode = compactCode(req.code());
-        String expectedHash = guest == null ? dummyCodeHash : guest.getGuestCodeHash();
-        if (suppliedCode.length() != 8 || !passwordEncoder.matches(suppliedCode, expectedHash) || guest == null) {
+        String expectedHash = guest == null ? dummyPasswordHash : guest.getPasswordHash();
+        boolean passwordMatches = passwordEncoder.matches(req.password(), expectedHash);
+        boolean legacyCodeMatches = guest != null && guest.getGuestCodeHash() != null
+                && passwordEncoder.matches(compactCode(req.password()), guest.getGuestCodeHash());
+        if ((!passwordMatches && !legacyCodeMatches) || guest == null) {
             recordLoginFailure(throttleKey);
-            throw new IllegalArgumentException("Guest name or recovery code is incorrect.");
+            throw new IllegalArgumentException("Guest name or password is incorrect.");
+        }
+
+        if (legacyCodeMatches) {
+            guest.setPasswordHash(passwordEncoder.encode(req.password()));
+            guest.setGuestCodeHash(null);
+            users.save(guest);
         }
 
         failedLogins.invalidate(throttleKey);
@@ -154,7 +159,7 @@ public class GuestIdentityService {
         devices.save(link);
 
         signIn(guest, request, response);
-        return new GuestSessionDto(AuthService.toDto(guest), null, true);
+        return new GuestSessionDto(AuthService.toDto(guest), true);
     }
 
     @Transactional
@@ -167,17 +172,6 @@ public class GuestIdentityService {
         touch(link, hash(clientIp(request)));
         signIn(link.getUser(), request, response);
         return AuthService.toDto(link.getUser());
-    }
-
-    @Transactional
-    public String regenerateCode(User guest) {
-        if (guest.getAccountType() != AccountType.GUEST) {
-            throw new IllegalArgumentException("Recovery codes are only available to guest accounts.");
-        }
-        String plainCode = generateCode();
-        guest.setGuestCodeHash(passwordEncoder.encode(compactCode(plainCode)));
-        users.save(guest);
-        return formatCode(plainCode);
     }
 
     public void pauseAutomaticResume(HttpServletRequest request, HttpServletResponse response) {
@@ -302,16 +296,6 @@ public class GuestIdentityService {
 
     private static String compactCode(String code) {
         return code == null ? "" : code.replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT);
-    }
-
-    private static String generateCode() {
-        StringBuilder value = new StringBuilder(8);
-        for (int i = 0; i < 8; i++) value.append(CODE_ALPHABET.charAt(RANDOM.nextInt(CODE_ALPHABET.length())));
-        return value.toString();
-    }
-
-    private static String formatCode(String code) {
-        return code.substring(0, 4) + "-" + code.substring(4);
     }
 
     private record DeviceIdentity(String hash) {}

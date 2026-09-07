@@ -36,7 +36,7 @@ class GuestIdentityServiceTest {
     }
 
     @Test
-    void createsGuestWithHashedRecoveryCodeAndDeviceCookie() {
+    void createsGuestWithChosenPasswordHashAndDeviceCookie() {
         when(devices.findByDeviceHash(anyString())).thenReturn(Optional.empty());
         when(users.existsByUsernameIgnoreCase("FilmFan")).thenReturn(false);
         when(users.countByAccountTypeAndGuestSignupIpHashAndCreatedAtAfter(eq(AccountType.GUEST), anyString(), any()))
@@ -46,9 +46,8 @@ class GuestIdentityServiceTest {
         var request = new MockHttpServletRequest();
         request.setRemoteAddr("203.0.113.8");
         var response = new MockHttpServletResponse();
-        var result = service.register(new GuestRegisterRequest("FilmFan"), request, response);
+        var result = service.register(new GuestRegisterRequest("FilmFan", "secret-movie"), request, response);
 
-        assertThat(result.recoveryCode()).matches("[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}");
         assertThat(result.existingAccount()).isFalse();
         assertThat(result.user().email()).isNull();
         assertThat(response.getHeader("Set-Cookie")).contains("CINENIGHT_GUEST_DEVICE=").contains("HttpOnly");
@@ -57,27 +56,51 @@ class GuestIdentityServiceTest {
         verify(users).saveAndFlush(guest.capture());
         assertThat(guest.getValue().getAccountType()).isEqualTo(AccountType.GUEST);
         assertThat(guest.getValue().getGuestSignupIpHash()).doesNotContain("203.0.113.8");
-        assertThat(encoder.matches(result.recoveryCode().replace("-", ""), guest.getValue().getGuestCodeHash())).isTrue();
+        assertThat(encoder.matches("secret-movie", guest.getValue().getPasswordHash())).isTrue();
+        assertThat(guest.getValue().getGuestCodeHash()).isNull();
         verify(devices).save(any(GuestDevice.class));
         verify(contexts).saveContext(any(), eq(request), eq(response));
     }
 
     @Test
-    void rejectsAnInvalidRecoveryCodeWithoutLinkingDevice() {
+    void rejectsAnInvalidPasswordWithoutLinkingDevice() {
         User guest = new User();
         guest.setUsername("FilmFan");
         guest.setAccountType(AccountType.GUEST);
-        guest.setGuestCodeHash(encoder.encode("ABCD2345"));
+        guest.setPasswordHash(encoder.encode("secret-movie"));
         when(users.findByUsernameIgnoreCaseAndAccountType("FilmFan", AccountType.GUEST))
                 .thenReturn(Optional.of(guest));
 
         var request = new MockHttpServletRequest();
         request.setRemoteAddr("203.0.113.8");
 
-        assertThatThrownBy(() -> service.login(new GuestLoginRequest("FilmFan", "WRNG-2345"),
+        assertThatThrownBy(() -> service.login(new GuestLoginRequest("FilmFan", "wrong-password"),
                 request, new MockHttpServletResponse()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("incorrect");
         verify(devices, never()).save(any());
+    }
+
+    @Test
+    void migratesALegacyRecoveryCodeToThePasswordHash() {
+        User guest = new User();
+        guest.setUsername("FilmFan");
+        guest.setEmail("guest@test.invalid");
+        guest.setDisplayName("FilmFan");
+        guest.setAccountType(AccountType.GUEST);
+        guest.setPasswordHash(encoder.encode("unavailable-random-password"));
+        guest.setGuestCodeHash(encoder.encode("ABCD2345"));
+        when(users.findByUsernameIgnoreCaseAndAccountType("FilmFan", AccountType.GUEST))
+                .thenReturn(Optional.of(guest));
+        when(devices.findByDeviceHash(anyString())).thenReturn(Optional.empty());
+
+        var request = new MockHttpServletRequest();
+        request.setRemoteAddr("203.0.113.8");
+        service.login(new GuestLoginRequest("FilmFan", "ABCD-2345"), request, new MockHttpServletResponse());
+
+        assertThat(encoder.matches("ABCD-2345", guest.getPasswordHash())).isTrue();
+        assertThat(guest.getGuestCodeHash()).isNull();
+        verify(users).save(guest);
+        verify(devices).save(any(GuestDevice.class));
     }
 }

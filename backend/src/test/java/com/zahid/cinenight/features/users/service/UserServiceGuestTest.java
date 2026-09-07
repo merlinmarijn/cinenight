@@ -64,4 +64,17 @@ class UserServiceGuestTest {
         assertThat(guest.getUsername()).isEqualTo("NewName");
         assertThat(guest.getDisplayNameChangedAt()).isAfter(Instant.now().minusSeconds(5));
     }
+
+    @Test
+    void changesGuestPassword() {
+        guest.setPasswordHash("old-hash");
+        when(encoder.matches("old-password", "old-hash")).thenReturn(true);
+        when(encoder.matches("new-password", "old-hash")).thenReturn(false);
+        when(encoder.encode("new-password")).thenReturn("new-hash");
+
+        service.changePassword(42L, new UserService.ChangePasswordReq("old-password", "new-password"));
+
+        assertThat(guest.getPasswordHash()).isEqualTo("new-hash");
+        verify(users).save(guest);
+    }
 }

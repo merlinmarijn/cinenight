@@ -129,9 +129,6 @@ public class UserService {
     @Transactional
     public void changePassword(Long userId, ChangePasswordReq req) {
         User user = users.findById(userId).orElseThrow(() -> new IllegalArgumentException(getMsg("user.not.found")));
-        if (user.getAccountType() == AccountType.GUEST) {
-            throw new IllegalArgumentException(getMsg("guest.password.unavailable"));
-        }
         if (!passwordEncoder.matches(req.currentPassword(), user.getPasswordHash())) {
             throw new IllegalArgumentException(getMsg("user.password.wrong")); 
         }

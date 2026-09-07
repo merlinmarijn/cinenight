@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { type UserDto, regenerateGuestCode } from '@/api/auth';
-import { User, Mail, Save, Loader2, AlertTriangle, CheckCircle, Lock, Key, Clipboard, Ticket } from 'lucide-react';
+import { type UserDto } from '@/api/auth';
+import { User, Mail, Save, Loader2, AlertTriangle, CheckCircle, Lock, Key } from 'lucide-react';
 import { changePassword, updateProfile } from '@/api/user';
 import { useTranslation } from 'react-i18next';
 
@@ -18,9 +18,6 @@ export default function ProfilePage({ user, onUserUpdate }: { user: UserDto; onU
     const [confirmPw, setConfirmPw] = useState('');
     const [savingPw, setSavingPw] = useState(false);
     const [pwMsg, setPwMsg] = useState<Message | null>(null);
-    const [newGuestCode, setNewGuestCode] = useState<string | null>(null);
-    const [creatingCode, setCreatingCode] = useState(false);
-    const [copied, setCopied] = useState(false);
 
     const renameDate = user.renameAvailableAt ? new Date(user.renameAvailableAt) : null;
     const renameLocked = Boolean(isGuest && renameDate && renameDate.getTime() > Date.now());
@@ -54,21 +51,6 @@ export default function ProfilePage({ user, onUserUpdate }: { user: UserDto; onU
         } else setPwMsg({ type: 'error', text: res.error || t('profile.msg_password_failed') });
     };
 
-    const replaceGuestCode = async () => {
-        setCreatingCode(true);
-        setProfileMsg(null);
-        const result = await regenerateGuestCode();
-        setCreatingCode(false);
-        if (result.ok) setNewGuestCode(result.data);
-        else setProfileMsg({ type: 'error', text: result.error || t('profile.guest.code_failed') });
-    };
-
-    const copyGuestCode = async () => {
-        if (!newGuestCode) return;
-        await navigator.clipboard.writeText(`${user.displayName} ${newGuestCode}`);
-        setCopied(true);
-    };
-
     return (
         <div className="mx-auto max-w-xl space-y-8 px-4 py-10">
             <div>
@@ -99,14 +81,7 @@ export default function ProfilePage({ user, onUserUpdate }: { user: UserDto; onU
                 </form>
             </div>
 
-            {isGuest ? <div className="overflow-hidden rounded-2xl border border-amber-200/20 bg-gray-900 shadow-xl">
-                <div className="border-b border-dashed border-amber-200/20 bg-amber-200/[0.06] p-6"><h2 className="flex items-center gap-2 text-xl font-semibold text-white"><Ticket className="h-5 w-5 text-amber-300" />{t('profile.guest.code_title')}</h2><p className="mt-2 text-sm leading-6 text-gray-400">{t('profile.guest.code_desc')}</p></div>
-                <div className="space-y-4 p-6">
-                    {newGuestCode ? <button type="button" onClick={copyGuestCode} className="flex w-full items-center justify-between rounded-lg bg-amber-200/10 px-4 py-4 text-left"><span className="font-mono text-xl font-bold tracking-[0.16em] text-amber-200">{newGuestCode}</span>{copied ? <CheckCircle className="h-5 w-5 text-emerald-400" /> : <Clipboard className="h-5 w-5 text-amber-200" />}</button> : null}
-                    <button type="button" onClick={replaceGuestCode} disabled={creatingCode} className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-gray-800 py-3 font-semibold text-gray-200 transition hover:bg-gray-700 disabled:opacity-50">{creatingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : <Key className="h-4 w-4" />}{t('profile.guest.code_replace')}</button>
-                    <p className="text-xs leading-5 text-gray-500">{t('profile.guest.code_warning')}</p>
-                </div>
-            </div> : <div className="rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-xl">
+            <div className="rounded-2xl border border-white/10 bg-gray-900 p-6 shadow-xl">
                 <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold text-white"><Lock className="h-5 w-5 text-indigo-400" />{t('profile.section_password')}</h2>
                 <form onSubmit={handlePasswordSubmit} className="space-y-6">
                     <PasswordField label={t('profile.current_password')} value={currentPw} onChange={setCurrentPw} placeholder={t('auth.fields.password_placeholder')} />
@@ -114,7 +89,7 @@ export default function ProfilePage({ user, onUserUpdate }: { user: UserDto; onU
                     {pwMsg ? <StatusMessage message={pwMsg} /> : null}
                     <button type="submit" disabled={savingPw} className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-gray-800 py-3 font-bold text-gray-200 transition hover:bg-gray-700 disabled:opacity-50">{savingPw ? <Loader2 className="h-5 w-5 animate-spin" /> : <Key className="h-5 w-5" />}{t('profile.update_password_button')}</button>
                 </form>
-            </div>}
+            </div>
         </div>
     );
 }
