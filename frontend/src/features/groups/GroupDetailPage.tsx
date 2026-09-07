@@ -414,7 +414,7 @@ export default function GroupDetailPage() {
                                         {/* Detaylar Hover */}
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
                                             <span className="text-white text-xs font-bold border border-white/40 px-4 py-2 rounded-full bg-black/50 hover:bg-white hover:text-black transition-colors">
-                                                Detaylar
+                                                Details
                                             </span>
                                         </div>
                                     </div>
